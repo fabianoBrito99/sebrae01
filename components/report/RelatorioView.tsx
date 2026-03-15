@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import BackgroundMarca from "@/components/layout/BackgroundMarca";
 import LogoHeader from "@/components/common/LogoHeader";
 import DashboardResumo from "@/components/report/DashboardResumo";
+import DownloadCsvButton from "@/components/report/DownloadCsvButton";
 import DownloadExcelButton from "@/components/report/DownloadExcelButton";
 import TabelaParticipantes from "@/components/report/TabelaParticipantes";
 import { fetchReport } from "@/services/client/api";
@@ -42,12 +43,15 @@ export default function RelatorioView() {
       <section className={styles.panel}>
         <div className={styles.topbar}>
           <LogoHeader compact />
-          <DownloadExcelButton />
+          <div className={styles.actions}>
+            <DownloadCsvButton />
+            <DownloadExcelButton />
+          </div>
         </div>
         <div className={styles.heading}>
           <p className={styles.eyebrow}>Relatorio</p>
           <h1>Mini dashboard de campanha</h1>
-          <p>Indicadores consolidados e exportacao de contatos para Excel.</p>
+          <p>Indicadores consolidados e exportacao de contatos para Excel e CSV.</p>
         </div>
         <DashboardResumo summary={summary} />
         <TabelaParticipantes participants={participants} />

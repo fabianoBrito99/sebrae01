@@ -29,6 +29,14 @@
   gap: 16px;
 }
 
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .heading {
   display: grid;
   gap: 8px;

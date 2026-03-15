@@ -79,3 +79,17 @@ export function buildExcelXml(participants: PlayerRecord[]): string {
     </Worksheet>
   </Workbook>`;
 }
+
+export function buildCsv(participants: PlayerRecord[]): string {
+  const escape = (value: string): string => {
+    const normalized = value.replace(/"/g, '""');
+    return `"${normalized}"`;
+  };
+
+  const header = ["Nome completo", "CPF", "Telefone", "E-mail"].join(",");
+  const rows = participants.map((item) =>
+    [escape(item.fullName), escape(item.cpf), escape(item.phone), escape(item.email)].join(",")
+  );
+
+  return [header, ...rows].join("\n");
+}

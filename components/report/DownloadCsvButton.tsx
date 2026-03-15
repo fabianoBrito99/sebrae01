@@ -1,24 +1,24 @@
 "use client";
 
 import styles from "./DownloadExcelButton.module.css";
-import { downloadExcel, getBrowserParticipants } from "./downloadUtils";
+import { downloadCsv, getBrowserParticipants } from "./downloadUtils";
 
-export default function DownloadExcelButton() {
+export default function DownloadCsvButton() {
   const handleDownload = async () => {
     const browserParticipants = getBrowserParticipants();
     if (browserParticipants.length > 0) {
-      downloadExcel(browserParticipants);
+      downloadCsv(browserParticipants);
       return;
     }
 
     try {
-      const response = await fetch("/api/export");
+      const response = await fetch("/api/export/csv");
       if (response.ok) {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
-        link.download = "participantes.xls";
+        link.download = "participantes.csv";
         document.body.appendChild(link);
         link.click();
         link.remove();
@@ -29,12 +29,12 @@ export default function DownloadExcelButton() {
       // fallback local abaixo
     }
 
-    downloadExcel(browserParticipants);
+    downloadCsv(browserParticipants);
   };
 
   return (
     <button type="button" className={styles.button} onClick={() => void handleDownload()}>
-      Baixar Excel
+      Baixar CSV
     </button>
   );
 }
