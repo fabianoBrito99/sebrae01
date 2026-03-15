@@ -176,14 +176,20 @@ export async function saveParticipantRecord(
 }
 
 export async function fetchParticipant(id: string): Promise<PlayerRecord | null> {
+  const storage = readBrowserStorage();
+  const localParticipant = storage.participants.find((item) => item.id === id) ?? null;
+
+  if (localParticipant) {
+    return localParticipant;
+  }
+
   const response = await requestJson<PlayerRecord>(`/api/participants/${id}`, { cache: "no-store" });
   if (response.ok && response.data) {
     saveParticipantToBrowser(response.data);
     return response.data;
   }
 
-  const storage = readBrowserStorage();
-  return storage.participants.find((item) => item.id === id) ?? null;
+  return null;
 }
 
 export async function fetchReport(): Promise<ReportResponse> {
