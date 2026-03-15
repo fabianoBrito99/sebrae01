@@ -245,4 +245,9 @@ export async function resetCampaignData(): Promise<void> {
 
   window.localStorage.removeItem(BROWSER_STORAGE_KEY);
   window.sessionStorage.removeItem(PLAYER_SESSION_KEY);
+
+  if (typeof window !== "undefined" && "caches" in window) {
+    const cacheKeys = await window.caches.keys();
+    await Promise.all(cacheKeys.map((key) => window.caches.delete(key)));
+  }
 }

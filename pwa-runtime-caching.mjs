@@ -1,5 +1,9 @@
 const runtimeCaching = [
   {
+    urlPattern: /\/api\/.*/i,
+    handler: "NetworkOnly"
+  },
+  {
     urlPattern: /^https?.*/,
     handler: "NetworkFirst",
     options: {
