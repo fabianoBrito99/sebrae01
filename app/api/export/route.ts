@@ -1,8 +1,16 @@
 import { getParticipants } from "@/services/server/storage";
 import { buildExcelXml } from "@/services/server/report";
+import type { PlayerRecord } from "@/types/game";
 
 export async function GET() {
-  const participants = await getParticipants();
+  let participants: PlayerRecord[] = [];
+
+  try {
+    participants = await getParticipants();
+  } catch {
+    participants = [];
+  }
+
   const xml = buildExcelXml(participants);
 
   return new Response(xml, {

@@ -1,10 +1,35 @@
 import { NextResponse } from "next/server";
-import type { GameType } from "@/types/game";
+import { cookies } from "next/headers";
+import type { DailyGameSelection, GameType } from "@/types/game";
 import { getTodayKey } from "@/utils/date";
 import { clearDailyGame, getDailyGame, setDailyGame } from "@/services/server/storage";
 
+const dailyGameCookieName = "campaign_daily_game";
+
+async function readDailyGameCookie(): Promise<DailyGameSelection | null> {
+  const store = await cookies();
+  const raw = store.get(dailyGameCookieName)?.value;
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as DailyGameSelection;
+    return parsed.date === getTodayKey() ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function GET() {
-  const dailyGame = await getDailyGame();
+  let dailyGame: DailyGameSelection | null = null;
+
+  try {
+    dailyGame = await getDailyGame();
+  } catch {
+    dailyGame = await readDailyGameCookie();
+  }
+
   return NextResponse.json({ dailyGame });
 }
 
@@ -14,15 +39,41 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Jogo invalido." }, { status: 400 });
   }
 
-  const dailyGame = await setDailyGame({
+  const dailyGame: DailyGameSelection = {
     date: getTodayKey(),
     game: body.game
+  };
+
+  try {
+    await setDailyGame(dailyGame);
+  } catch {
+    // Em ambiente serverless sem escrita local, o cookie sustenta a sessao do navegador.
+  }
+
+  const response = NextResponse.json({ dailyGame });
+  response.cookies.set(dailyGameCookieName, JSON.stringify(dailyGame), {
+    httpOnly: false,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 60 * 60 * 24
   });
 
-  return NextResponse.json({ dailyGame });
+  return response;
 }
 
 export async function DELETE() {
-  await clearDailyGame();
-  return NextResponse.json({ ok: true });
+  try {
+    await clearDailyGame();
+  } catch {
+    // Fluxo resiliente para deploy serverless.
+  }
+
+  const response = NextResponse.json({ ok: true });
+  response.cookies.set(dailyGameCookieName, "", {
+    httpOnly: false,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0
+  });
+  return response;
 }
