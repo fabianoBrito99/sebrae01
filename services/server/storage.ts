@@ -4,6 +4,9 @@ import type { AppStorage, DailyGameSelection, PlayerRecord } from "@/types/game"
 import { getTodayKey } from "@/utils/date";
 
 const storageFile = path.join(process.cwd(), "data", "storage.json");
+const kvStorageKey = process.env.KV_STORAGE_KEY ?? "campaign-storage";
+const kvRestApiUrl = process.env.KV_REST_API_URL;
+const kvRestApiToken = process.env.KV_REST_API_TOKEN;
 
 const defaultStorage: AppStorage = {
   dailyGame: null,
@@ -11,10 +14,15 @@ const defaultStorage: AppStorage = {
   lastWordSetKey: null
 };
 
+type KvResponse<T> = {
+  result?: T;
+};
+
 function isAppStorage(value: unknown): value is AppStorage {
   if (!value || typeof value !== "object") {
     return false;
   }
+
   const candidate = value as AppStorage;
   return Array.isArray(candidate.participants) && "dailyGame" in candidate && "lastWordSetKey" in candidate;
 }
@@ -34,7 +42,62 @@ function tryRepairStorage(raw: string): AppStorage | null {
   }
 }
 
-async function ensureStorage(): Promise<void> {
+function hasKvStorage(): boolean {
+  return Boolean(kvRestApiUrl && kvRestApiToken);
+}
+
+async function requestKv<T>(command: "get" | "set", value?: AppStorage): Promise<T | null> {
+  if (!kvRestApiUrl || !kvRestApiToken) {
+    return null;
+  }
+
+  const encodedKey = encodeURIComponent(kvStorageKey);
+  const url =
+    command === "get"
+      ? `${kvRestApiUrl}/get/${encodedKey}`
+      : `${kvRestApiUrl}/set/${encodedKey}/${encodeURIComponent(JSON.stringify(value ?? defaultStorage))}`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${kvRestApiToken}`
+    },
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new Error(`KV request failed with status ${response.status}.`);
+  }
+
+  const payload = (await response.json()) as KvResponse<T>;
+  return payload.result ?? null;
+}
+
+async function readKvStorage(): Promise<AppStorage> {
+  const result = await requestKv<string>("get");
+  if (!result) {
+    await writeKvStorage(defaultStorage);
+    return defaultStorage;
+  }
+
+  try {
+    const parsed = JSON.parse(result) as unknown;
+    if (isAppStorage(parsed)) {
+      return parsed;
+    }
+  } catch {
+    // Continua para resetar a estrutura.
+  }
+
+  await writeKvStorage(defaultStorage);
+  return defaultStorage;
+}
+
+async function writeKvStorage(data: AppStorage): Promise<void> {
+  await requestKv<string>("set", data);
+}
+
+async function ensureFileStorage(): Promise<void> {
   try {
     await fs.access(storageFile);
   } catch {
@@ -43,8 +106,8 @@ async function ensureStorage(): Promise<void> {
   }
 }
 
-export async function readStorage(): Promise<AppStorage> {
-  await ensureStorage();
+async function readFileStorage(): Promise<AppStorage> {
+  await ensureFileStorage();
   const raw = await fs.readFile(storageFile, "utf8");
   try {
     const parsed = JSON.parse(raw) as unknown;
@@ -54,18 +117,35 @@ export async function readStorage(): Promise<AppStorage> {
   } catch {
     const repaired = tryRepairStorage(raw);
     if (repaired) {
-      await writeStorage(repaired);
+      await writeFileStorage(repaired);
       return repaired;
     }
   }
 
-  await writeStorage(defaultStorage);
+  await writeFileStorage(defaultStorage);
   return defaultStorage;
 }
 
-export async function writeStorage(data: AppStorage): Promise<void> {
-  await ensureStorage();
+async function writeFileStorage(data: AppStorage): Promise<void> {
+  await ensureFileStorage();
   await fs.writeFile(storageFile, JSON.stringify(data, null, 2), "utf8");
+}
+
+export async function readStorage(): Promise<AppStorage> {
+  if (hasKvStorage()) {
+    return readKvStorage();
+  }
+
+  return readFileStorage();
+}
+
+export async function writeStorage(data: AppStorage): Promise<void> {
+  if (hasKvStorage()) {
+    await writeKvStorage(data);
+    return;
+  }
+
+  await writeFileStorage(data);
 }
 
 export async function getDailyGame(): Promise<DailyGameSelection | null> {
@@ -73,6 +153,7 @@ export async function getDailyGame(): Promise<DailyGameSelection | null> {
   if (!storage.dailyGame) {
     return null;
   }
+
   return storage.dailyGame.date === getTodayKey() ? storage.dailyGame : null;
 }
 

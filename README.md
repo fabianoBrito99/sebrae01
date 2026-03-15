@@ -37,6 +37,18 @@ Os dados ficam em `data/storage.json`:
 - `participants`
 - `lastWordSetKey`
 
+### Producao na Vercel
+
+Em ambiente local, o projeto usa `data/storage.json`.
+
+Na Vercel, para persistencia real entre acessos e dispositivos, configure `Vercel KV` e adicione estas variaveis de ambiente:
+
+- `KV_REST_API_URL`
+- `KV_REST_API_TOKEN`
+- `KV_STORAGE_KEY` opcional, para trocar o nome da chave principal
+
+Sem essas envs, a Vercel nao consegue persistir o arquivo local entre execucoes. Nesse caso o app ainda funciona com fallback no navegador do totem, mas os dados nao ficam centralizados no servidor.
+
 O Excel e gerado sob demanda em `/api/export` e contem apenas:
 
 - Nome completo
