@@ -6,6 +6,7 @@ import LogoHeader from "@/components/common/LogoHeader";
 import DashboardResumo from "@/components/report/DashboardResumo";
 import DownloadCsvButton from "@/components/report/DownloadCsvButton";
 import DownloadExcelButton from "@/components/report/DownloadExcelButton";
+import ResetDataButton from "@/components/report/ResetDataButton";
 import TabelaParticipantes from "@/components/report/TabelaParticipantes";
 import { fetchReport } from "@/services/client/api";
 import type { DashboardSummary, PlayerRecord } from "@/types/game";
@@ -44,6 +45,12 @@ export default function RelatorioView() {
         <div className={styles.topbar}>
           <LogoHeader compact />
           <div className={styles.actions}>
+            <ResetDataButton
+              onReset={() => {
+                setSummary(emptySummary);
+                setParticipants([]);
+              }}
+            />
             <DownloadCsvButton />
             <DownloadExcelButton />
           </div>

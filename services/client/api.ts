@@ -18,6 +18,7 @@ type SafeApiResponse<T> = {
 };
 
 const BROWSER_STORAGE_KEY = "campaign-pwa-browser-storage";
+const PLAYER_SESSION_KEY = "campanha-player-session";
 const defaultBrowserStorage: BrowserStorage = {
   dailyGame: null,
   participants: [],
@@ -233,4 +234,15 @@ export async function fetchWordSearchPuzzle(): Promise<WordSearchPuzzle> {
   const puzzle = buildWordSearch(words);
   saveLastWordSetKeyToBrowser(getWordSetKey(words));
   return puzzle;
+}
+
+export async function resetCampaignData(): Promise<void> {
+  await requestJson<{ ok: boolean }>("/api/reset", { method: "DELETE" });
+
+  if (!canUseBrowserStorage()) {
+    return;
+  }
+
+  window.localStorage.removeItem(BROWSER_STORAGE_KEY);
+  window.sessionStorage.removeItem(PLAYER_SESSION_KEY);
 }

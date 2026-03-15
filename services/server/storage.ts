@@ -197,3 +197,7 @@ export async function setLastWordSetKey(value: string): Promise<void> {
   storage.lastWordSetKey = value;
   await writeStorage(storage);
 }
+
+export async function clearAllData(): Promise<void> {
+  await writeStorage(defaultStorage);
+}
