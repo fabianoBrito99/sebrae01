@@ -69,6 +69,16 @@ function saveParticipantToBrowser(record: PlayerRecord): void {
   writeBrowserStorage({ ...storage, participants });
 }
 
+function mergeParticipants(primary: PlayerRecord[], secondary: PlayerRecord[]): PlayerRecord[] {
+  const merged = new Map<string, PlayerRecord>();
+
+  for (const item of [...primary, ...secondary]) {
+    merged.set(item.id, item);
+  }
+
+  return [...merged.values()].sort((a, b) => b.playedAt.localeCompare(a.playedAt));
+}
+
 function saveLastWordSetKeyToBrowser(lastWordSetKey: string): void {
   const storage = readBrowserStorage();
   writeBrowserStorage({ ...storage, lastWordSetKey });
@@ -195,21 +205,20 @@ export async function fetchParticipant(id: string): Promise<PlayerRecord | null>
 export async function fetchReport(): Promise<ReportResponse> {
   const response = await requestJson<ReportResponse>("/api/report", { cache: "no-store" });
   const storage = readBrowserStorage();
+  const localParticipants = storage.participants;
 
   if (response.ok && response.data) {
-    if (response.data.participants.length === 0 && storage.participants.length > 0) {
-      return {
-        summary: buildDashboardSummary(storage.participants),
-        participants: storage.participants.slice(0, 10)
-      };
-    }
+    const mergedParticipants = mergeParticipants(localParticipants, response.data.participants);
 
-    return response.data;
+    return {
+      summary: buildDashboardSummary(mergedParticipants),
+      participants: mergedParticipants.slice(0, 10)
+    };
   }
 
   return {
-    summary: buildDashboardSummary(storage.participants),
-    participants: storage.participants.slice(0, 10)
+    summary: buildDashboardSummary(localParticipants),
+    participants: localParticipants.slice(0, 10)
   };
 }
 
