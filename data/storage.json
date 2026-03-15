@@ -1,0 +1,53 @@
+{
+  "dailyGame": {
+    "date": "2026-03-15",
+    "game": "memory"
+  },
+  "participants": [
+    {
+      "id": "94622d1d-3c1c-42c6-8cae-eec3a47d3d82",
+      "fullName": "f b",
+      "cpf": "053.792.662-31",
+      "phone": "(69) 99323-4428",
+      "email": "fabiano@gmail.com",
+      "game": "memory",
+      "score": 8,
+      "wonPrize": true,
+      "playedAt": "2026-03-15T21:57:13.848Z"
+    },
+    {
+      "id": "5c3189c6-1454-4736-8574-1c3aae31e85f",
+      "fullName": "f b",
+      "cpf": "053.792.662-31",
+      "phone": "(69) 99323-4428",
+      "email": "fabiano@gmail.com",
+      "game": "memory",
+      "score": 0,
+      "wonPrize": false,
+      "playedAt": "2026-03-15T21:52:21.117Z"
+    },
+    {
+      "id": "ec2e723c-b07c-4de1-8fd7-3a7b3be14011",
+      "fullName": "fabiano b",
+      "cpf": "053.792.662-31",
+      "phone": "(69) 99323-4428",
+      "email": "fabiano@gmail.com",
+      "game": "memory",
+      "score": 9,
+      "wonPrize": true,
+      "playedAt": "2026-03-15T21:40:22.818Z"
+    },
+    {
+      "id": "9f8be832-0643-42e7-950e-1a4c34d47eee",
+      "fullName": "fabiano b",
+      "cpf": "053.792.662-31",
+      "phone": "(69) 99323-4428",
+      "email": "fabiano@gmail.com",
+      "game": "memory",
+      "score": 2,
+      "wonPrize": false,
+      "playedAt": "2026-03-15T21:36:13.730Z"
+    }
+  ],
+  "lastWordSetKey": "COMERCIO|EMPRETEC|ESTRATEGIA|EVENTOS|INOVACAO|LIDERE|PALESTRAS|PORTFOLIO|SETORIAL|TURISMO"
+}
