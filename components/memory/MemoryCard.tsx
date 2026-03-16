@@ -18,7 +18,7 @@ export default function MemoryCard({ image, flipped, matched, onClick }: Props) 
       <span className={styles.inner}>
         <span className={styles.front}>?</span>
         <span className={styles.back}>
-          <img src={image} alt="Carta do jogo da memoria" />
+          <img src={image} alt={"Carta do jogo da mem\u00F3ria"} />
         </span>
       </span>
     </button>

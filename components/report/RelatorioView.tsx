@@ -56,9 +56,9 @@ export default function RelatorioView() {
           </div>
         </div>
         <div className={styles.heading}>
-          <p className={styles.eyebrow}>Relatorio</p>
+          <p className={styles.eyebrow}>{"Relat\u00F3rio"}</p>
           <h1>Mini dashboard de campanha</h1>
-          <p>Indicadores consolidados e exportacao de contatos para Excel e CSV.</p>
+          <p>{"Indicadores consolidados e exporta\u00E7\u00E3o de contatos para Excel e CSV."}</p>
         </div>
         <DashboardResumo summary={summary} />
         <TabelaParticipantes participants={participants} />

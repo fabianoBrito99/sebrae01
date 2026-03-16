@@ -72,7 +72,12 @@ export default function WordSearchGameScreen() {
 
   if (!puzzle) {
     return (
-      <GameFrame title="Caca-Palavras" subtitle="Preparando a grade do jogo..." secondsLeft={60} score={0}>
+      <GameFrame
+        title={"Ca\u00E7a-palavras"}
+        subtitle="Preparando a grade do jogo..."
+        secondsLeft={60}
+        score={0}
+      >
         <div className={styles.loading}>Carregando puzzle...</div>
       </GameFrame>
     );
@@ -80,7 +85,7 @@ export default function WordSearchGameScreen() {
 
   return (
     <GameFrame
-      title="Caca-Palavras"
+      title={"Ca\u00E7a-palavras"}
       subtitle="Selecione palavras horizontais e verticais com toque ou mouse."
       secondsLeft={secondsLeft}
       score={score}

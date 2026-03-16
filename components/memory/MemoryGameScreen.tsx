@@ -62,8 +62,8 @@ export default function MemoryGameScreen() {
 
   return (
     <GameFrame
-      title="Jogo da Memoria"
-      subtitle="Encontre o maior numero de pares em um minuto."
+      title={"Jogo da Mem\u00F3ria"}
+      subtitle={"Encontre o maior n\u00FAmero de pares em um minuto."}
       secondsLeft={secondsLeft}
       score={score}
     >

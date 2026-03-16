@@ -19,13 +19,13 @@ export default function ModalEscolhaJogoDia({ open, onSelect, loading }: Props) 
     <div className={styles.backdrop}>
       <div className={styles.modal}>
         <p className={styles.eyebrow}>Jogo do dia</p>
-        <h2>Qual jogo sera exibido hoje?</h2>
+        <h2>{"Qual jogo ser\u00E1 exibido hoje?"}</h2>
         <p className={styles.text}>
           Esta escolha fica persistida para que a home mostre apenas o jogo definido no dia.
         </p>
         <div className={styles.actions}>
           <BotaoPrimario onClick={() => onSelect("memory")} disabled={loading} block>
-            Jogo da Memoria
+            {"Jogo da Mem\u00F3ria"}
           </BotaoPrimario>
           <button
             className={styles.secondary}
@@ -33,7 +33,7 @@ export default function ModalEscolhaJogoDia({ open, onSelect, loading }: Props) 
             onClick={() => onSelect("wordsearch")}
             disabled={loading}
           >
-            Caca-Palavras
+            {"Ca\u00E7a-palavras"}
           </button>
         </div>
       </div>

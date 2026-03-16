@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { GameType, PlayerFormData } from "@/types/game";
-import type { DailyGameSelection } from "@/types/game";
+import type { DailyGameSelection, GameType, PlayerFormData } from "@/types/game";
+import BackHomeButton from "@/components/common/BackHomeButton";
 import InputCampo from "@/components/forms/InputCampo";
 import BotaoPrimario from "@/components/common/BotaoPrimario";
 import LogoHeader from "@/components/common/LogoHeader";
@@ -42,14 +42,15 @@ export default function FormularioJogador({ dailyGame }: Props) {
   return (
     <main className={styles.page}>
       <BackgroundMarca />
+      <BackHomeButton />
       <section className={styles.panel}>
         <div className={styles.center}>
-           <LogoHeader compact />
+          <LogoHeader compact />
         </div>
-       
+
         <div className={styles.heading}>
           <h1>Preencha seus dados para iniciar.</h1>
-          <p>Campos obrigatorios *</p>
+          <p>{"Campos obrigat\u00F3rios *"}</p>
         </div>
         <div className={styles.grid}>
           <InputCampo
@@ -81,7 +82,7 @@ export default function FormularioJogador({ dailyGame }: Props) {
             label="E-mail"
             value={form.email}
             onChange={(value) => setForm((current) => ({ ...current, email: value }))}
-            placeholder="voce@empresa.com"
+            placeholder={"voc\u00EA@empresa.com"}
             type="email"
             error={errors.email}
           />

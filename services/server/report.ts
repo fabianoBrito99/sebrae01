@@ -4,6 +4,7 @@ function average(items: number[]): number {
   if (!items.length) {
     return 0;
   }
+
   const total = items.reduce((sum, value) => sum + value, 0);
   return Number((total / items.length).toFixed(1));
 }
@@ -12,6 +13,7 @@ function conversionRate(participants: PlayerRecord[]): number {
   if (!participants.length) {
     return 0;
   }
+
   const winners = participants.filter((item) => item.wonPrize).length;
   return Number(((winners / participants.length) * 100).toFixed(1));
 }
@@ -30,8 +32,8 @@ export function buildDashboardSummary(participants: PlayerRecord[]): DashboardSu
       memoryWinners === wordsearchWinners
         ? "Empate"
         : memoryWinners > wordsearchWinners
-        ? "Jogo da Memoria"
-        : "Caca-Palavras",
+          ? "Jogo da Mem\u00F3ria"
+          : "Ca\u00E7a-palavras",
     averageMemoryScore: average(memory.map((item) => item.score)),
     averageWordSearchScore: average(wordsearch.map((item) => item.score)),
     wins: participants.filter((item) => item.wonPrize).length,

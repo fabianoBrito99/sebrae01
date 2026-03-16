@@ -5,17 +5,13 @@ import { useRouter } from "next/navigation";
 import BackgroundMarca from "@/components/layout/BackgroundMarca";
 import BotaoPrimario from "@/components/common/BotaoPrimario";
 import ModalEscolhaJogoDia from "@/components/home/ModalEscolhaJogoDia";
-import {
-  fetchDailyGame,
-  resetDailyGame,
-  updateDailyGame,
-} from "@/services/client/api";
+import { fetchDailyGame, resetDailyGame, updateDailyGame } from "@/services/client/api";
 import type { GameType } from "@/types/game";
 import styles from "./HomeExperience.module.css";
 
 const labels: Record<GameType, string> = {
-  memory: "Jogo da Memoria",
-  wordsearch: "Caca-Palavras",
+  memory: "Jogo da Mem\u00F3ria",
+  wordsearch: "Ca\u00E7a-palavras"
 };
 
 export default function HomeExperience() {
@@ -56,11 +52,7 @@ export default function HomeExperience() {
       <div className={styles.bgMotion} />
       <div className={styles.noise} />
       <BackgroundMarca />
-      <ModalEscolhaJogoDia
-        open={!loading && showSelector}
-        onSelect={handleSelectGame}
-        loading={saving}
-      />
+      <ModalEscolhaJogoDia open={!loading && showSelector} onSelect={handleSelectGame} loading={saving} />
 
       {dailyGame && !showSelector ? (
         <button
@@ -75,20 +67,14 @@ export default function HomeExperience() {
       ) : null}
 
       <div className={styles.center}>
-        <div className={styles.badge}>
-          {dailyGame ? labels[dailyGame] : "Defina o jogo do dia"}
-        </div>
+        <div className={styles.badge}>{dailyGame ? labels[dailyGame] : "Defina o jogo do dia"}</div>
         <div className={styles.content}>
           <div className={styles.img}>
-            <img src="/logo.png" alt="logo" className={styles.eventLogo} />
+            <img src="/logo.png" alt="Logo do evento" className={styles.eventLogo} />
           </div>
 
           <div className={styles.ctaRow}>
-            <BotaoPrimario
-              onClick={() => router.push("/form")}
-              disabled={!dailyGame}
-              block
-            >
+            <BotaoPrimario onClick={() => router.push("/form")} disabled={!dailyGame} block>
               Iniciar jogo
             </BotaoPrimario>
           </div>

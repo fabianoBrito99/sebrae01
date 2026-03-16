@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { WordSearchCell, WordSearchPuzzle } from "@/types/wordsearch";
+import { normalizeWord } from "@/utils/wordsearch";
 import styles from "./WordSearchBoard.module.css";
 
 type Props = {
@@ -69,15 +70,17 @@ export default function WordSearchBoard({
       return;
     }
 
-    const selectedWord = cells.map((cell) => puzzle.grid[cell.row][cell.col]).join("");
-    const reverse = [...cells]
+    const selectedWord = normalizeWord(cells.map((cell) => puzzle.grid[cell.row][cell.col]).join(""));
+    const reverse = normalizeWord(
+      [...cells]
       .reverse()
       .map((cell) => puzzle.grid[cell.row][cell.col])
-      .join("");
+      .join("")
+    );
 
-    const match = puzzle.words.find((word) => word === selectedWord || word === reverse);
-    if (match && !foundWords.includes(match)) {
-      setFoundWords((current) => [...current, match]);
+    const match = puzzle.placements.find((placement) => placement.word === selectedWord || placement.word === reverse);
+    if (match && !foundWords.includes(match.label)) {
+      setFoundWords((current) => [...current, match.label]);
     }
     setSelectedCells([]);
     setStartCell(null);
@@ -101,7 +104,7 @@ export default function WordSearchBoard({
 
   const foundCellKeys = new Set(
     puzzle.placements
-      .filter((placement) => foundWords.includes(placement.word))
+      .filter((placement) => foundWords.includes(placement.label))
       .flatMap((placement) =>
         Array.from({ length: placement.word.length }, (_, index) =>
           placement.direction === "horizontal"
