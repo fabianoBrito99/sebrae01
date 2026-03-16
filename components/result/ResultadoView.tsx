@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import BackHomeButton from "@/components/common/BackHomeButton";
 import BackgroundMarca from "@/components/layout/BackgroundMarca";
 import ResultCard from "@/components/result/ResultCard";
 import type { PlayerRecord } from "@/types/game";
@@ -29,7 +28,6 @@ export default function ResultadoView({ participantId }: Props) {
   return (
     <main className={styles.page}>
       <BackgroundMarca />
-      <BackHomeButton />
       {participant ? <ResultCard participant={participant} /> : <div className={styles.loading}>Carregando...</div>}
     </main>
   );

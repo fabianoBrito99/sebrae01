@@ -19,6 +19,7 @@ type SafeApiResponse<T> = {
 
 const BROWSER_STORAGE_KEY = "campaign-pwa-browser-storage";
 const PLAYER_SESSION_KEY = "campanha-player-session";
+const RESET_MARKER_KEY = "campaign-pwa-reset-marker";
 const defaultBrowserStorage: BrowserStorage = {
   dailyGame: null,
   participants: [],
@@ -59,14 +60,32 @@ function writeBrowserStorage(storage: BrowserStorage): void {
   window.localStorage.setItem(BROWSER_STORAGE_KEY, JSON.stringify(storage));
 }
 
+function hasResetMarker(): boolean {
+  if (!canUseBrowserStorage()) {
+    return false;
+  }
+
+  return window.localStorage.getItem(RESET_MARKER_KEY) !== null;
+}
+
+function clearResetMarker(): void {
+  if (!canUseBrowserStorage()) {
+    return;
+  }
+
+  window.localStorage.removeItem(RESET_MARKER_KEY);
+}
+
 function saveDailyGameToBrowser(dailyGame: DailyGameSelection | null): void {
   const storage = readBrowserStorage();
+  clearResetMarker();
   writeBrowserStorage({ ...storage, dailyGame });
 }
 
 function saveParticipantToBrowser(record: PlayerRecord): void {
   const storage = readBrowserStorage();
   const participants = [record, ...storage.participants.filter((item) => item.id !== record.id)];
+  clearResetMarker();
   writeBrowserStorage({ ...storage, participants });
 }
 
@@ -82,6 +101,7 @@ function mergeParticipants(primary: PlayerRecord[], secondary: PlayerRecord[]): 
 
 function saveLastWordSetKeyToBrowser(lastWordSetKey: string): void {
   const storage = readBrowserStorage();
+  clearResetMarker();
   writeBrowserStorage({ ...storage, lastWordSetKey });
 }
 
@@ -125,8 +145,12 @@ async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Pro
 }
 
 export async function fetchDailyGame(): Promise<DailyGameSelection | null> {
-  const response = await requestJson<DailyGameResponse>("/api/settings", { cache: "no-store" });
   const browserStorageDailyGame = normalizeDailyGameForToday(readBrowserStorage().dailyGame);
+  if (hasResetMarker() && !browserStorageDailyGame) {
+    return null;
+  }
+
+  const response = await requestJson<DailyGameResponse>("/api/settings", { cache: "no-store" });
 
   if (response.ok && response.data) {
     const normalizedServerDailyGame = normalizeDailyGameForToday(response.data.dailyGame);
@@ -194,6 +218,10 @@ export async function fetchParticipant(id: string): Promise<PlayerRecord | null>
     return localParticipant;
   }
 
+  if (hasResetMarker()) {
+    return null;
+  }
+
   const response = await requestJson<PlayerRecord>(`/api/participants/${id}`, { cache: "no-store" });
   if (response.ok && response.data) {
     saveParticipantToBrowser(response.data);
@@ -204,9 +232,17 @@ export async function fetchParticipant(id: string): Promise<PlayerRecord | null>
 }
 
 export async function fetchReport(): Promise<ReportResponse> {
-  const response = await requestJson<ReportResponse>("/api/report", { cache: "no-store" });
   const storage = readBrowserStorage();
   const localParticipants = storage.participants;
+
+  if (hasResetMarker() && localParticipants.length === 0) {
+    return {
+      summary: buildDashboardSummary([]),
+      participants: []
+    };
+  }
+
+  const response = await requestJson<ReportResponse>("/api/report", { cache: "no-store" });
 
   if (response.ok && response.data) {
     const mergedParticipants = mergeParticipants(localParticipants, response.data.participants);
@@ -243,7 +279,8 @@ export async function resetCampaignData(): Promise<void> {
     return;
   }
 
-  window.localStorage.removeItem(BROWSER_STORAGE_KEY);
+  writeBrowserStorage(defaultBrowserStorage);
+  window.localStorage.setItem(RESET_MARKER_KEY, new Date().toISOString());
   window.sessionStorage.removeItem(PLAYER_SESSION_KEY);
 
   if (typeof window !== "undefined" && "caches" in window) {

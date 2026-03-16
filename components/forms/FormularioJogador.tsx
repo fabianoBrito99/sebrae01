@@ -42,7 +42,7 @@ export default function FormularioJogador({ dailyGame }: Props) {
   return (
     <main className={styles.page}>
       <BackgroundMarca />
-      <BackHomeButton />
+      <BackHomeButton game={dailyGame.game} />
       <section className={styles.panel}>
         <div className={styles.center}>
           <LogoHeader compact />
