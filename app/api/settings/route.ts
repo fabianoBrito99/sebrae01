@@ -23,11 +23,16 @@ async function readDailyGameCookie(): Promise<DailyGameSelection | null> {
 
 export async function GET() {
   let dailyGame: DailyGameSelection | null = null;
+  const cookieDailyGame = await readDailyGameCookie();
 
   try {
     dailyGame = await getDailyGame();
   } catch {
-    dailyGame = await readDailyGameCookie();
+    dailyGame = cookieDailyGame;
+  }
+
+  if (!dailyGame && cookieDailyGame) {
+    dailyGame = cookieDailyGame;
   }
 
   return NextResponse.json({ dailyGame });

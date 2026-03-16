@@ -154,8 +154,9 @@ export async function fetchDailyGame(): Promise<DailyGameSelection | null> {
 
   if (response.ok && response.data) {
     const normalizedServerDailyGame = normalizeDailyGameForToday(response.data.dailyGame);
-    saveDailyGameToBrowser(normalizedServerDailyGame);
-    return normalizedServerDailyGame ?? browserStorageDailyGame;
+    const effectiveDailyGame = normalizedServerDailyGame ?? browserStorageDailyGame;
+    saveDailyGameToBrowser(effectiveDailyGame);
+    return effectiveDailyGame;
   }
 
   return browserStorageDailyGame;
