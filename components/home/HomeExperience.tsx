@@ -31,6 +31,14 @@ export default function HomeExperience() {
     void load();
   }, []);
 
+  useEffect(() => {
+    void router.prefetch("/form");
+    void router.prefetch("/game/memory");
+    void router.prefetch("/game/wordsearch");
+    void router.prefetch("/resultado");
+    void router.prefetch("/relatorio");
+  }, [router]);
+
   const handleSelectGame = async (game: GameType) => {
     setSaving(true);
     const selection = await updateDailyGame(game);

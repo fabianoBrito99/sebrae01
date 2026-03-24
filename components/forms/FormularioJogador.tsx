@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { DailyGameSelection, GameType, PlayerFormData } from "@/types/game";
 import BackHomeButton from "@/components/common/BackHomeButton";
@@ -34,6 +34,10 @@ export default function FormularioJogador({ dailyGame }: Props) {
 
   const errors = useMemo(() => validateForm(form), [form]);
   const valid = isFormValid(form);
+
+  useEffect(() => {
+    void router.prefetch(routeByGame[dailyGame.game]);
+  }, [dailyGame.game, router]);
 
   const handleStart = () => {
     savePlayerSession({ player: form, game: dailyGame.game });
@@ -94,7 +98,7 @@ export default function FormularioJogador({ dailyGame }: Props) {
             checked={form.consentAccepted}
             onChange={(event) => setForm((current) => ({ ...current, consentAccepted: event.target.checked }))}
           />
-          <span>Estou ciente de que meus dados serão compartilhados com o Sebrae.</span>
+          <span>{"Estou ciente de que meus dados ser\u00E3o compartilhados com o Sebrae."}</span>
         </label>
         {errors.consentAccepted ? <small className={styles.consentError}>{errors.consentAccepted}</small> : null}
         <BotaoPrimario onClick={handleStart} disabled={!valid} block>

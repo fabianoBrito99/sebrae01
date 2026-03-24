@@ -4,6 +4,18 @@ const runtimeCaching = [
     handler: "NetworkOnly"
   },
   {
+    urlPattern: ({ sameOrigin, request }) => sameOrigin && request.mode === "navigate",
+    handler: "NetworkFirst",
+    options: {
+      cacheName: "app-pages",
+      expiration: {
+        maxEntries: 20,
+        maxAgeSeconds: 60 * 60 * 24 * 30
+      },
+      networkTimeoutSeconds: 3
+    }
+  },
+  {
     urlPattern: /^https?.*/,
     handler: "NetworkFirst",
     options: {
