@@ -38,6 +38,11 @@ export default function HomeExperience() {
     void router.prefetch("/game/wordsearch");
     void router.prefetch("/resultado");
     void router.prefetch("/relatorio");
+
+    Array.from({ length: 10 }, (_, index) => `/im${index + 1}.jpeg`).forEach((src) => {
+      const image = new Image();
+      image.src = src;
+    });
   }, [router]);
 
   const handleSelectGame = async (game: GameType) => {
