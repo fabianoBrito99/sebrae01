@@ -1,5 +1,6 @@
 import { createSign } from "node:crypto";
 import type { PlayerRecord } from "@/types/game";
+import { onlyDigits } from "@/utils/masks";
 
 type FirebaseServiceAccount = {
   client_email: string;
@@ -31,6 +32,10 @@ type AccessTokenCache = {
 const firestoreScope = "https://www.googleapis.com/auth/datastore";
 const participantsCollection = process.env.FIREBASE_PARTICIPANTS_COLLECTION ?? "campaignParticipants";
 let accessTokenCache: AccessTokenCache = null;
+
+function buildParticipantDocumentId(cpf: string, game: PlayerRecord["game"]): string {
+  return `${game}_${onlyDigits(cpf)}`;
+}
 
 function getFirebaseConfig(): FirebaseServiceAccount | null {
   const raw = process.env.FIREBASE_ADMIN_KEY?.trim();
@@ -211,7 +216,9 @@ export async function saveParticipantToFirebase(record: PlayerRecord): Promise<P
     return null;
   }
 
-  await firebaseRequest<FirestoreDocument>(`/${participantsCollection}/${record.id}`, {
+  const documentId = buildParticipantDocumentId(record.cpf, record.game);
+
+  await firebaseRequest<FirestoreDocument>(`/${participantsCollection}/${documentId}`, {
     method: "PATCH",
     body: JSON.stringify({
       fields: playerRecordToFirestoreFields(record)
@@ -248,7 +255,24 @@ export async function getFirebaseParticipantById(id: string): Promise<PlayerReco
     return null;
   }
 
-  const document = await firebaseRequest<FirestoreDocument>(`/${participantsCollection}/${id}`);
+  const participants = await getFirebaseParticipants();
+  if (!participants) {
+    return null;
+  }
+
+  return participants.find((participant) => participant.id === id) ?? null;
+}
+
+export async function getFirebaseParticipantByCpfGame(
+  cpf: string,
+  game: PlayerRecord["game"]
+): Promise<PlayerRecord | null> {
+  if (!hasFirebaseConfig()) {
+    return null;
+  }
+
+  const documentId = buildParticipantDocumentId(cpf, game);
+  const document = await firebaseRequest<FirestoreDocument>(`/${participantsCollection}/${documentId}`);
   return document ? firestoreDocumentToPlayerRecord(document) : null;
 }
 

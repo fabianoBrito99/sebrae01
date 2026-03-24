@@ -2,6 +2,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import {
   clearFirebaseParticipants,
+  getFirebaseParticipantByCpfGame,
   getFirebaseParticipantById,
   getFirebaseParticipants,
   isFirebaseSyncEnabled,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/firebase";
 import type { AppStorage, DailyGameSelection, PlayerRecord } from "@/types/game";
 import { getTodayKey } from "@/utils/date";
+import { onlyDigits } from "@/utils/masks";
 
 const storageFile = path.join(process.cwd(), "data", "storage.json");
 const kvStorageKey = process.env.KV_STORAGE_KEY ?? "campaign-storage";
@@ -213,6 +215,19 @@ export async function getParticipantById(id: string): Promise<PlayerRecord | nul
 
   const participants = await getParticipants();
   return participants.find((item) => item.id === id) ?? null;
+}
+
+export async function getParticipantByCpfGame(cpf: string, game: PlayerRecord["game"]): Promise<PlayerRecord | null> {
+  if (isFirebaseSyncEnabled()) {
+    const participant = await getFirebaseParticipantByCpfGame(cpf, game);
+    if (participant) {
+      return participant;
+    }
+  }
+
+  const participants = await getParticipants();
+  const normalizedCpf = onlyDigits(cpf);
+  return participants.find((item) => onlyDigits(item.cpf) === normalizedCpf && item.game === game) ?? null;
 }
 
 export async function getLastWordSetKey(): Promise<string | null> {

@@ -14,10 +14,12 @@ function isImagePath(path: string): boolean {
 
 async function cacheRoute(path: string): Promise<boolean> {
   try {
-    const response = await fetch(path, {
+    const request = new Request(new URL(path, window.location.origin).toString(), {
       cache: "reload",
-      credentials: "same-origin"
+      credentials: "same-origin",
+      mode: "same-origin"
     });
+    const response = await fetch(request);
 
     if (!response.ok) {
       return false;
@@ -25,7 +27,7 @@ async function cacheRoute(path: string): Promise<boolean> {
 
     const cacheName = isImagePath(path) ? IMAGE_CACHE : path.startsWith("/_next/") ? ASSET_CACHE : PAGE_CACHE;
     const cache = await window.caches.open(cacheName);
-    await cache.put(path, response.clone());
+    await cache.put(request, response.clone());
     return true;
   } catch {
     return false;
