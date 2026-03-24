@@ -1,21 +1,27 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { DailyGameSelection, GameType, PlayerFormData } from "@/types/game";
 import BackHomeButton from "@/components/common/BackHomeButton";
 import InputCampo from "@/components/forms/InputCampo";
 import BotaoPrimario from "@/components/common/BotaoPrimario";
 import LogoHeader from "@/components/common/LogoHeader";
 import BackgroundMarca from "@/components/layout/BackgroundMarca";
+import { hasCpfPlayedGame } from "@/services/client/api";
 import { maskCpf, maskPhone } from "@/utils/masks";
 import { navigateToPath } from "@/utils/navigation";
-import { isFormValid, validateForm } from "@/utils/validators";
+import { isFormValid, isValidCpf, validateForm } from "@/utils/validators";
 import { savePlayerSession } from "@/utils/session";
 import styles from "./FormularioJogador.module.css";
 
 const routeByGame: Record<GameType, string> = {
   memory: "/game/memory",
   wordsearch: "/game/wordsearch"
+};
+
+const gameLabel: Record<GameType, string> = {
+  memory: "Jogo da Memória",
+  wordsearch: "Caça-palavras"
 };
 
 type Props = {
@@ -30,11 +36,53 @@ export default function FormularioJogador({ dailyGame }: Props) {
     email: "",
     consentAccepted: false
   });
+  const [cpfDuplicateError, setCpfDuplicateError] = useState("");
+  const [checkingCpf, setCheckingCpf] = useState(false);
 
   const errors = useMemo(() => validateForm(form), [form]);
-  const valid = isFormValid(form);
+  const valid = isFormValid(form) && !cpfDuplicateError && !checkingCpf;
 
-  const handleStart = () => {
+  useEffect(() => {
+    let active = true;
+
+    if (!isValidCpf(form.cpf)) {
+      setCheckingCpf(false);
+      setCpfDuplicateError("");
+      return () => {
+        active = false;
+      };
+    }
+
+    setCheckingCpf(true);
+    const timeoutId = window.setTimeout(() => {
+      const checkDuplicate = async () => {
+        const alreadyPlayed = await hasCpfPlayedGame(form.cpf, dailyGame.game);
+        if (!active) {
+          return;
+        }
+
+        setCpfDuplicateError(
+          alreadyPlayed ? `Este CPF já participou do ${gameLabel[dailyGame.game]}.` : ""
+        );
+        setCheckingCpf(false);
+      };
+
+      void checkDuplicate();
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeoutId);
+    };
+  }, [dailyGame.game, form.cpf]);
+
+  const handleStart = async () => {
+    const alreadyPlayed = await hasCpfPlayedGame(form.cpf, dailyGame.game);
+    if (alreadyPlayed) {
+      setCpfDuplicateError(`Este CPF já participou do ${gameLabel[dailyGame.game]}.`);
+      return;
+    }
+
     savePlayerSession({ player: form, game: dailyGame.game });
     navigateToPath(routeByGame[dailyGame.game]);
   };
@@ -67,7 +115,7 @@ export default function FormularioJogador({ dailyGame }: Props) {
             value={form.cpf}
             onChange={(value) => setForm((current) => ({ ...current, cpf: maskCpf(value) }))}
             placeholder="000.000.000-00"
-            error={errors.cpf}
+            error={cpfDuplicateError || errors.cpf}
           />
           <InputCampo
             id="phone"
@@ -96,8 +144,8 @@ export default function FormularioJogador({ dailyGame }: Props) {
           <span>Estou ciente de que meus dados serão compartilhados com o Sebrae.</span>
         </label>
         {errors.consentAccepted ? <small className={styles.consentError}>{errors.consentAccepted}</small> : null}
-        <BotaoPrimario onClick={handleStart} disabled={!valid} block>
-          Iniciar
+        <BotaoPrimario onClick={() => void handleStart()} disabled={!valid} block>
+          {checkingCpf ? "Validando CPF..." : "Iniciar"}
         </BotaoPrimario>
       </section>
     </main>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { GameType, PlayerFormData, PlayerRecord } from "@/types/game";
 import { saveParticipant, getParticipants } from "@/services/server/storage";
+import { onlyDigits } from "@/utils/masks";
 import { isValidCpf, isValidEmail, isValidFullName, isValidPhone } from "@/utils/validators";
 
 type ParticipantPayload = PlayerFormData & {
@@ -53,6 +54,13 @@ export async function POST(request: Request) {
   };
 
   try {
+    const participants = await getParticipants();
+    const normalizedCpf = onlyDigits(record.cpf);
+    const existing = participants.find((item) => onlyDigits(item.cpf) === normalizedCpf && item.game === record.game);
+    if (existing) {
+      return NextResponse.json(existing, { status: 409 });
+    }
+
     const saved = await saveParticipant(record);
     return NextResponse.json(saved, { status: 201 });
   } catch (error) {

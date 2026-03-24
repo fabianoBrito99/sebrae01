@@ -2,6 +2,7 @@ import { buildDashboardSummary } from "@/services/server/report";
 import type { DashboardSummary, DailyGameSelection, GameType, PlayerFormData, PlayerRecord } from "@/types/game";
 import type { WordSearchPuzzle } from "@/types/wordsearch";
 import { getTodayKey } from "@/utils/date";
+import { onlyDigits } from "@/utils/masks";
 import { buildWordSearch, getWordSetKey, pickWords } from "@/utils/wordsearch";
 
 type DailyGameResponse = { dailyGame: DailyGameSelection | null };
@@ -108,6 +109,13 @@ function markParticipantAsSynced(record: PlayerRecord): void {
   writeBrowserStorage({ ...storage, participants, pendingParticipants });
 }
 
+function removePendingParticipant(recordId: string): void {
+  const storage = readBrowserStorage();
+  const pendingParticipants = storage.pendingParticipants.filter((item) => item.id !== recordId);
+  clearResetMarker();
+  writeBrowserStorage({ ...storage, pendingParticipants });
+}
+
 function mergeParticipants(primary: PlayerRecord[], secondary: PlayerRecord[]): PlayerRecord[] {
   const merged = new Map<string, PlayerRecord>();
 
@@ -141,6 +149,15 @@ async function flushPendingParticipants(): Promise<void> {
 
     if (response.ok && response.data) {
       markParticipantAsSynced(response.data);
+      continue;
+    }
+
+    if (response.status === 409) {
+      if (response.data) {
+        markParticipantAsSynced(response.data);
+      } else {
+        removePendingParticipant(participant.id);
+      }
     }
   }
 }
@@ -192,6 +209,25 @@ async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Pro
       data: null
     };
   }
+}
+
+export async function hasCpfPlayedGame(cpf: string, game: GameType): Promise<boolean> {
+  const normalizedCpf = onlyDigits(cpf);
+  if (normalizedCpf.length !== 11) {
+    return false;
+  }
+
+  const localParticipants = readBrowserStorage().participants;
+  if (localParticipants.some((item) => onlyDigits(item.cpf) === normalizedCpf && item.game === game)) {
+    return true;
+  }
+
+  const response = await requestJson<PlayerRecord[]>("/api/participants", { cache: "no-store" });
+  if (!response.ok || !response.data) {
+    return false;
+  }
+
+  return response.data.some((item) => onlyDigits(item.cpf) === normalizedCpf && item.game === game);
 }
 
 export async function fetchDailyGame(): Promise<DailyGameSelection | null> {
