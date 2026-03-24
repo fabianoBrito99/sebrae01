@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 import type { DailyGameSelection, GameType, PlayerFormData } from "@/types/game";
 import BackHomeButton from "@/components/common/BackHomeButton";
 import InputCampo from "@/components/forms/InputCampo";
@@ -9,6 +8,7 @@ import BotaoPrimario from "@/components/common/BotaoPrimario";
 import LogoHeader from "@/components/common/LogoHeader";
 import BackgroundMarca from "@/components/layout/BackgroundMarca";
 import { maskCpf, maskPhone } from "@/utils/masks";
+import { navigateToPath } from "@/utils/navigation";
 import { isFormValid, validateForm } from "@/utils/validators";
 import { savePlayerSession } from "@/utils/session";
 import styles from "./FormularioJogador.module.css";
@@ -23,7 +23,6 @@ type Props = {
 };
 
 export default function FormularioJogador({ dailyGame }: Props) {
-  const router = useRouter();
   const [form, setForm] = useState<PlayerFormData>({
     fullName: "",
     cpf: "",
@@ -35,13 +34,9 @@ export default function FormularioJogador({ dailyGame }: Props) {
   const errors = useMemo(() => validateForm(form), [form]);
   const valid = isFormValid(form);
 
-  useEffect(() => {
-    void router.prefetch(routeByGame[dailyGame.game]);
-  }, [dailyGame.game, router]);
-
   const handleStart = () => {
     savePlayerSession({ player: form, game: dailyGame.game });
-    router.push(routeByGame[dailyGame.game]);
+    navigateToPath(routeByGame[dailyGame.game]);
   };
 
   return (
@@ -55,7 +50,7 @@ export default function FormularioJogador({ dailyGame }: Props) {
 
         <div className={styles.heading}>
           <h1>Preencha seus dados para iniciar.</h1>
-          <p>{"Campos obrigat\u00F3rios *"}</p>
+          <p>Campos obrigatórios *</p>
         </div>
         <div className={styles.grid}>
           <InputCampo
@@ -87,7 +82,7 @@ export default function FormularioJogador({ dailyGame }: Props) {
             label="E-mail"
             value={form.email}
             onChange={(value) => setForm((current) => ({ ...current, email: value }))}
-            placeholder={"voc\u00EA@empresa.com"}
+            placeholder="voce@empresa.com"
             type="email"
             error={errors.email}
           />
@@ -98,7 +93,7 @@ export default function FormularioJogador({ dailyGame }: Props) {
             checked={form.consentAccepted}
             onChange={(event) => setForm((current) => ({ ...current, consentAccepted: event.target.checked }))}
           />
-          <span>{"Estou ciente de que meus dados ser\u00E3o compartilhados com o Sebrae."}</span>
+          <span>Estou ciente de que meus dados serão compartilhados com o Sebrae.</span>
         </label>
         {errors.consentAccepted ? <small className={styles.consentError}>{errors.consentAccepted}</small> : null}
         <BotaoPrimario onClick={handleStart} disabled={!valid} block>

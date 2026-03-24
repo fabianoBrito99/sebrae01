@@ -1,22 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import BackgroundMarca from "@/components/layout/BackgroundMarca";
 import BotaoPrimario from "@/components/common/BotaoPrimario";
 import ModalEscolhaJogoDia from "@/components/home/ModalEscolhaJogoDia";
 import { fetchDailyGame, resetDailyGame, updateDailyGame } from "@/services/client/api";
 import type { GameType } from "@/types/game";
+import { navigateToPath } from "@/utils/navigation";
 import { savePreferredGame } from "@/utils/session";
 import styles from "./HomeExperience.module.css";
 
 const labels: Record<GameType, string> = {
-  memory: "Jogo da Mem\u00F3ria",
-  wordsearch: "Ca\u00E7a-palavras"
+  memory: "Jogo da Memória",
+  wordsearch: "Caça-palavras"
 };
 
 export default function HomeExperience() {
-  const router = useRouter();
   const [dailyGame, setDailyGame] = useState<GameType | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -29,21 +28,16 @@ export default function HomeExperience() {
       setShowSelector(!selection?.game);
       setLoading(false);
     };
+
     void load();
   }, []);
 
   useEffect(() => {
-    void router.prefetch("/form");
-    void router.prefetch("/game/memory");
-    void router.prefetch("/game/wordsearch");
-    void router.prefetch("/resultado");
-    void router.prefetch("/relatorio");
-
     Array.from({ length: 10 }, (_, index) => `/im${index + 1}.jpeg`).forEach((src) => {
       const image = new Image();
       image.src = src;
     });
-  }, [router]);
+  }, []);
 
   const handleSelectGame = async (game: GameType) => {
     setSaving(true);
@@ -92,8 +86,8 @@ export default function HomeExperience() {
               onClick={() => {
                 if (dailyGame) {
                   savePreferredGame(dailyGame);
+                  navigateToPath("/form");
                 }
-                router.push("/form");
               }}
               disabled={!dailyGame}
               block

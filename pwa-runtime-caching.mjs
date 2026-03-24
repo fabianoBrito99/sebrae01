@@ -5,14 +5,41 @@ const runtimeCaching = [
   },
   {
     urlPattern: ({ sameOrigin, request }) => sameOrigin && request.mode === "navigate",
-    handler: "NetworkFirst",
+    handler: "CacheFirst",
     options: {
       cacheName: "app-pages",
       expiration: {
         maxEntries: 20,
         maxAgeSeconds: 60 * 60 * 24 * 30
       },
-      networkTimeoutSeconds: 3
+      cacheableResponse: {
+        statuses: [200]
+      }
+    }
+  },
+  {
+    urlPattern: ({ sameOrigin, request }) => sameOrigin && request.destination === "image",
+    handler: "CacheFirst",
+    options: {
+      cacheName: "images",
+      expiration: {
+        maxEntries: 80,
+        maxAgeSeconds: 60 * 60 * 24 * 30
+      },
+      cacheableResponse: {
+        statuses: [200]
+      }
+    }
+  },
+  {
+    urlPattern: /\/_next\/static\/.*/i,
+    handler: "CacheFirst",
+    options: {
+      cacheName: "static-assets",
+      expiration: {
+        maxEntries: 100,
+        maxAgeSeconds: 60 * 60 * 24 * 30
+      }
     }
   },
   {
@@ -25,17 +52,6 @@ const runtimeCaching = [
         maxAgeSeconds: 60 * 60 * 24 * 30
       },
       networkTimeoutSeconds: 10
-    }
-  },
-  {
-    urlPattern: /\/_next\/static\/.*/i,
-    handler: "CacheFirst",
-    options: {
-      cacheName: "static-assets",
-      expiration: {
-        maxEntries: 100,
-        maxAgeSeconds: 60 * 60 * 24 * 30
-      }
     }
   }
 ];

@@ -1,15 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import GameFrame from "@/components/common/GameFrame";
 import MemoryBoard from "@/components/memory/MemoryBoard";
 import { saveParticipantRecord } from "@/services/client/api";
+import { replacePath } from "@/utils/navigation";
 import { clearPlayerSession, loadPlayerSession, saveLastResultParticipantId } from "@/utils/session";
 import styles from "./MemoryGameScreen.module.css";
 
 export default function MemoryGameScreen() {
-  const router = useRouter();
   const [score, setScore] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(60);
   const [locked, setLocked] = useState(false);
@@ -17,7 +16,7 @@ export default function MemoryGameScreen() {
   useEffect(() => {
     const session = loadPlayerSession();
     if (!session || session.game !== "memory") {
-      router.replace("/form");
+      replacePath("/form");
       return;
     }
 
@@ -32,12 +31,13 @@ export default function MemoryGameScreen() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     if (secondsLeft !== 0 || locked) {
       return;
     }
+
     void finishGame(score);
   }, [locked, score, secondsLeft]);
 
@@ -45,11 +45,13 @@ export default function MemoryGameScreen() {
     if (locked) {
       return;
     }
+
     const session = loadPlayerSession();
     if (!session) {
-      router.replace("/form");
+      replacePath("/form");
       return;
     }
+
     setLocked(true);
     const participant = await saveParticipantRecord({
       ...session.player,
@@ -58,13 +60,13 @@ export default function MemoryGameScreen() {
     });
     saveLastResultParticipantId(participant.id);
     clearPlayerSession();
-    router.replace("/resultado");
+    replacePath("/resultado");
   };
 
   return (
     <GameFrame
-      title={"Jogo da Mem\u00F3ria"}
-      subtitle={"Encontre o maior n\u00FAmero de pares em um minuto."}
+      title="Jogo da Memória"
+      subtitle="Encontre o maior número de pares em um minuto."
       secondsLeft={secondsLeft}
       score={score}
     >

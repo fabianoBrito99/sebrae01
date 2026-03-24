@@ -1,5 +1,6 @@
 [
   "/",
+  "/_offline",
   "/form",
   "/game/memory",
   "/game/wordsearch",

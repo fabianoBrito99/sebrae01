@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import GameFrame from "@/components/common/GameFrame";
 import WordSearchBoard from "@/components/wordsearch/WordSearchBoard";
 import WordList from "@/components/wordsearch/WordList";
 import { fetchWordSearchPuzzle, saveParticipantRecord } from "@/services/client/api";
 import type { WordSearchPuzzle } from "@/types/wordsearch";
+import { replacePath } from "@/utils/navigation";
 import { clearPlayerSession, loadPlayerSession, saveLastResultParticipantId } from "@/utils/session";
 import styles from "./WordSearchGameScreen.module.css";
 
 export default function WordSearchGameScreen() {
-  const router = useRouter();
   const [score, setScore] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(120);
   const [locked, setLocked] = useState(false);
@@ -21,7 +20,7 @@ export default function WordSearchGameScreen() {
   useEffect(() => {
     const session = loadPlayerSession();
     if (!session || session.game !== "wordsearch") {
-      router.replace("/form");
+      replacePath("/form");
       return;
     }
 
@@ -42,12 +41,13 @@ export default function WordSearchGameScreen() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [router]);
+  }, []);
 
   useEffect(() => {
     if (secondsLeft !== 0 || locked) {
       return;
     }
+
     void finishGame(score);
   }, [locked, score, secondsLeft]);
 
@@ -55,11 +55,13 @@ export default function WordSearchGameScreen() {
     if (locked) {
       return;
     }
+
     const session = loadPlayerSession();
     if (!session) {
-      router.replace("/form");
+      replacePath("/form");
       return;
     }
+
     setLocked(true);
     const participant = await saveParticipantRecord({
       ...session.player,
@@ -68,17 +70,12 @@ export default function WordSearchGameScreen() {
     });
     saveLastResultParticipantId(participant.id);
     clearPlayerSession();
-    router.replace("/resultado");
+    replacePath("/resultado");
   };
 
   if (!puzzle) {
     return (
-      <GameFrame
-        title={"Ca\u00E7a-palavras"}
-        subtitle="Preparando a grade do jogo..."
-        secondsLeft={60}
-        score={0}
-      >
+      <GameFrame title="Caça-palavras" subtitle="Preparando a grade do jogo..." secondsLeft={60} score={0}>
         <div className={styles.loading}>Carregando puzzle...</div>
       </GameFrame>
     );
@@ -86,7 +83,7 @@ export default function WordSearchGameScreen() {
 
   return (
     <GameFrame
-      title={"Ca\u00E7a-palavras"}
+      title="Caça-palavras"
       subtitle="Selecione palavras horizontais e verticais com toque ou mouse."
       secondsLeft={secondsLeft}
       score={score}

@@ -14,6 +14,10 @@ const withPWA = withPWAInit({
   skipWaiting: true,
   cacheOnFrontEndNav: true,
   dynamicStartUrl: false,
+  fallbacks: {
+    document: "/_offline",
+    image: "/icons/icon-192.svg"
+  },
   runtimeCaching,
   additionalManifestEntries: offlineRoutes.map((route) => ({
     url: route,
