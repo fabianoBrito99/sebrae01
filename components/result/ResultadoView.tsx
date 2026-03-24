@@ -5,6 +5,7 @@ import BackgroundMarca from "@/components/layout/BackgroundMarca";
 import ResultCard from "@/components/result/ResultCard";
 import type { PlayerRecord } from "@/types/game";
 import { fetchParticipant } from "@/services/client/api";
+import { loadLastResultParticipantId } from "@/utils/session";
 import styles from "./ResultadoView.module.css";
 
 type Props = {
@@ -15,11 +16,12 @@ export default function ResultadoView({ participantId }: Props) {
   const [participant, setParticipant] = useState<PlayerRecord | null>(null);
 
   useEffect(() => {
-    if (!participantId) {
+    const resolvedParticipantId = participantId || loadLastResultParticipantId();
+    if (!resolvedParticipantId) {
       return;
     }
     const load = async () => {
-      const result = await fetchParticipant(participantId);
+      const result = await fetchParticipant(resolvedParticipantId);
       setParticipant(result);
     };
     void load();

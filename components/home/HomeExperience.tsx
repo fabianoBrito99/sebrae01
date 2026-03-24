@@ -7,6 +7,7 @@ import BotaoPrimario from "@/components/common/BotaoPrimario";
 import ModalEscolhaJogoDia from "@/components/home/ModalEscolhaJogoDia";
 import { fetchDailyGame, resetDailyGame, updateDailyGame } from "@/services/client/api";
 import type { GameType } from "@/types/game";
+import { savePreferredGame } from "@/utils/session";
 import styles from "./HomeExperience.module.css";
 
 const labels: Record<GameType, string> = {
@@ -83,7 +84,12 @@ export default function HomeExperience() {
 
           <div className={styles.ctaRow}>
             <BotaoPrimario
-              onClick={() => router.push(dailyGame ? `/form?game=${dailyGame}` : "/form")}
+              onClick={() => {
+                if (dailyGame) {
+                  savePreferredGame(dailyGame);
+                }
+                router.push("/form");
+              }}
               disabled={!dailyGame}
               block
             >

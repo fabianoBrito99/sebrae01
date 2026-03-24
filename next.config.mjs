@@ -1,7 +1,11 @@
+import fs from "node:fs";
+import path from "node:path";
 import withPWAInit from "next-pwa";
 import runtimeCaching from "./pwa-runtime-caching.mjs";
 
 const appShellRevision = process.env.VERCEL_GIT_COMMIT_SHA ?? "local-shell-v1";
+const routesConfigPath = path.join(process.cwd(), "config", "pwa-routes.json");
+const offlineRoutes = JSON.parse(fs.readFileSync(routesConfigPath, "utf8"));
 
 const withPWA = withPWAInit({
   dest: "public",
@@ -11,14 +15,10 @@ const withPWA = withPWAInit({
   cacheOnFrontEndNav: true,
   dynamicStartUrl: false,
   runtimeCaching,
-  additionalManifestEntries: [
-    { url: "/", revision: appShellRevision },
-    { url: "/form", revision: appShellRevision },
-    { url: "/game/memory", revision: appShellRevision },
-    { url: "/game/wordsearch", revision: appShellRevision },
-    { url: "/resultado", revision: appShellRevision },
-    { url: "/relatorio", revision: appShellRevision }
-  ]
+  additionalManifestEntries: offlineRoutes.map((route) => ({
+    url: route,
+    revision: appShellRevision
+  }))
 });
 
 /** @type {import('next').NextConfig} */

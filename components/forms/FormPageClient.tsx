@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import FormularioJogador from "@/components/forms/FormularioJogador";
 import { fetchDailyGame } from "@/services/client/api";
 import type { DailyGameSelection, GameType } from "@/types/game";
+import { loadPreferredGame } from "@/utils/session";
 
 type Props = {
   initialGame: GameType | null;
@@ -17,10 +18,13 @@ export default function FormPageClient({ initialGame }: Props) {
 
   useEffect(() => {
     const load = async () => {
-      if (initialGame) {
+      const preferredGame = loadPreferredGame();
+      const gameToUse = preferredGame ?? initialGame;
+
+      if (gameToUse) {
         setDailyGame({
           date: new Date().toISOString().slice(0, 10),
-          game: initialGame
+          game: gameToUse
         });
         setLoading(false);
         return;

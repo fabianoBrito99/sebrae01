@@ -7,7 +7,7 @@ import WordSearchBoard from "@/components/wordsearch/WordSearchBoard";
 import WordList from "@/components/wordsearch/WordList";
 import { fetchWordSearchPuzzle, saveParticipantRecord } from "@/services/client/api";
 import type { WordSearchPuzzle } from "@/types/wordsearch";
-import { clearPlayerSession, loadPlayerSession } from "@/utils/session";
+import { clearPlayerSession, loadPlayerSession, saveLastResultParticipantId } from "@/utils/session";
 import styles from "./WordSearchGameScreen.module.css";
 
 export default function WordSearchGameScreen() {
@@ -66,8 +66,9 @@ export default function WordSearchGameScreen() {
       game: "wordsearch",
       score: finalScore
     });
+    saveLastResultParticipantId(participant.id);
     clearPlayerSession();
-    router.replace(`/resultado?id=${participant.id}`);
+    router.replace("/resultado");
   };
 
   if (!puzzle) {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import GameFrame from "@/components/common/GameFrame";
 import MemoryBoard from "@/components/memory/MemoryBoard";
 import { saveParticipantRecord } from "@/services/client/api";
-import { clearPlayerSession, loadPlayerSession } from "@/utils/session";
+import { clearPlayerSession, loadPlayerSession, saveLastResultParticipantId } from "@/utils/session";
 import styles from "./MemoryGameScreen.module.css";
 
 export default function MemoryGameScreen() {
@@ -56,8 +56,9 @@ export default function MemoryGameScreen() {
       game: "memory",
       score: finalScore
     });
+    saveLastResultParticipantId(participant.id);
     clearPlayerSession();
-    router.replace(`/resultado?id=${participant.id}`);
+    router.replace("/resultado");
   };
 
   return (
