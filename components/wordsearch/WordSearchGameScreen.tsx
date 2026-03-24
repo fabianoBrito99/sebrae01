@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import GameFrame from "@/components/common/GameFrame";
 import WordSearchBoard from "@/components/wordsearch/WordSearchBoard";
 import WordList from "@/components/wordsearch/WordList";
 import { fetchWordSearchPuzzle, saveParticipantRecord } from "@/services/client/api";
 import type { WordSearchPuzzle } from "@/types/wordsearch";
-import { replacePath } from "@/utils/navigation";
 import { clearPlayerSession, loadPlayerSession, saveLastResultParticipantId } from "@/utils/session";
 import styles from "./WordSearchGameScreen.module.css";
 
 export default function WordSearchGameScreen() {
+  const router = useRouter();
   const [score, setScore] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(120);
   const [locked, setLocked] = useState(false);
@@ -20,9 +21,11 @@ export default function WordSearchGameScreen() {
   useEffect(() => {
     const session = loadPlayerSession();
     if (!session || session.game !== "wordsearch") {
-      replacePath("/form");
+      router.replace("/form");
       return;
     }
+
+    void router.prefetch("/resultado");
 
     const loadPuzzle = async () => {
       const data = await fetchWordSearchPuzzle();
@@ -41,7 +44,7 @@ export default function WordSearchGameScreen() {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (secondsLeft !== 0 || locked) {
@@ -58,7 +61,7 @@ export default function WordSearchGameScreen() {
 
     const session = loadPlayerSession();
     if (!session) {
-      replacePath("/form");
+      router.replace("/form");
       return;
     }
 
@@ -70,7 +73,7 @@ export default function WordSearchGameScreen() {
     });
     saveLastResultParticipantId(participant.id);
     clearPlayerSession();
-    replacePath("/resultado");
+    router.replace("/resultado");
   };
 
   if (!puzzle) {

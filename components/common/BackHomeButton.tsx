@@ -1,8 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { updateDailyGame } from "@/services/client/api";
 import type { GameType } from "@/types/game";
-import { navigateToPath } from "@/utils/navigation";
 import styles from "./BackHomeButton.module.css";
 
 type Props = {
@@ -11,6 +11,8 @@ type Props = {
 };
 
 export default function BackHomeButton({ label = "Voltar para a tela inicial", game }: Props) {
+  const router = useRouter();
+
   return (
     <button
       type="button"
@@ -21,7 +23,7 @@ export default function BackHomeButton({ label = "Voltar para a tela inicial", g
             await updateDailyGame(game);
           }
 
-          navigateToPath("/");
+          router.push("/");
         };
 
         void navigate();

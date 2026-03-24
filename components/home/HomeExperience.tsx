@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import BackgroundMarca from "@/components/layout/BackgroundMarca";
 import BotaoPrimario from "@/components/common/BotaoPrimario";
 import ModalEscolhaJogoDia from "@/components/home/ModalEscolhaJogoDia";
 import { fetchDailyGame, resetDailyGame, updateDailyGame } from "@/services/client/api";
 import type { GameType } from "@/types/game";
-import { navigateToPath } from "@/utils/navigation";
+import {
+  dismissOfflineNotice,
+  isOfflineNoticeDismissed,
+  OFFLINE_STATUS_EVENT,
+  readOfflineStatus,
+  type OfflineCacheStatus
+} from "@/utils/offlineStatus";
 import { savePreferredGame } from "@/utils/session";
 import styles from "./HomeExperience.module.css";
 
@@ -16,10 +23,13 @@ const labels: Record<GameType, string> = {
 };
 
 export default function HomeExperience() {
+  const router = useRouter();
   const [dailyGame, setDailyGame] = useState<GameType | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSelector, setShowSelector] = useState(false);
+  const [offlineStatus, setOfflineStatus] = useState<OfflineCacheStatus>("idle");
+  const [showOfflineNotice, setShowOfflineNotice] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -33,11 +43,40 @@ export default function HomeExperience() {
   }, []);
 
   useEffect(() => {
+    const syncNoticeState = () => {
+      const status = readOfflineStatus();
+      setOfflineStatus(status);
+      setShowOfflineNotice(!isOfflineNoticeDismissed() && (status === "warming" || status === "ready" || status === "error"));
+    };
+
+    syncNoticeState();
+
+    const handleOfflineStatusChange = () => {
+      syncNoticeState();
+    };
+
+    window.addEventListener(OFFLINE_STATUS_EVENT, handleOfflineStatusChange as EventListener);
+    window.addEventListener("online", handleOfflineStatusChange);
+
+    return () => {
+      window.removeEventListener(OFFLINE_STATUS_EVENT, handleOfflineStatusChange as EventListener);
+      window.removeEventListener("online", handleOfflineStatusChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    void router.prefetch("/");
+    void router.prefetch("/form");
+    void router.prefetch("/game/memory");
+    void router.prefetch("/game/wordsearch");
+    void router.prefetch("/resultado");
+    void router.prefetch("/relatorio");
+
     Array.from({ length: 10 }, (_, index) => `/im${index + 1}.jpeg`).forEach((src) => {
       const image = new Image();
       image.src = src;
     });
-  }, []);
+  }, [router]);
 
   const handleSelectGame = async (game: GameType) => {
     setSaving(true);
@@ -61,6 +100,38 @@ export default function HomeExperience() {
       <div className={styles.noise} />
       <BackgroundMarca />
       <ModalEscolhaJogoDia open={!loading && showSelector} onSelect={handleSelectGame} loading={saving} />
+
+      {showOfflineNotice ? (
+        <aside className={`${styles.offlineNotice} ${styles[`offline-${offlineStatus}`] ?? ""}`} aria-live="polite">
+          <div className={styles.offlineCopy}>
+            <strong>
+              {offlineStatus === "ready"
+                ? "Modo offline pronto"
+                : offlineStatus === "warming"
+                  ? "Preparando modo offline"
+                  : "Modo offline precisa de atenção"}
+            </strong>
+            <span>
+              {offlineStatus === "ready"
+                ? "O totem já pode funcionar sem internet nas telas principais."
+                : offlineStatus === "warming"
+                  ? "Estamos salvando rotas e imagens para uso sem conexão."
+                  : "Abra o app online por alguns segundos para concluir o cache offline."}
+            </span>
+          </div>
+          <button
+            type="button"
+            className={styles.offlineClose}
+            aria-label="Ocultar aviso offline"
+            onClick={() => {
+              dismissOfflineNotice();
+              setShowOfflineNotice(false);
+            }}
+          >
+            ×
+          </button>
+        </aside>
+      ) : null}
 
       {dailyGame && !showSelector ? (
         <button
@@ -86,7 +157,7 @@ export default function HomeExperience() {
               onClick={() => {
                 if (dailyGame) {
                   savePreferredGame(dailyGame);
-                  navigateToPath("/form");
+                  router.push("/form");
                 }
               }}
               disabled={!dailyGame}

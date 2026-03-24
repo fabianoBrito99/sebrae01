@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import FormularioJogador from "@/components/forms/FormularioJogador";
 import { fetchDailyGame } from "@/services/client/api";
 import type { DailyGameSelection, GameType } from "@/types/game";
-import { replacePath } from "@/utils/navigation";
 import { loadPreferredGame } from "@/utils/session";
 
 type Props = {
@@ -12,6 +12,7 @@ type Props = {
 };
 
 export default function FormPageClient({ initialGame }: Props) {
+  const router = useRouter();
   const [dailyGame, setDailyGame] = useState<DailyGameSelection | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +32,7 @@ export default function FormPageClient({ initialGame }: Props) {
 
       const selection = await fetchDailyGame();
       if (!selection) {
-        replacePath("/");
+        router.replace("/");
         return;
       }
 
@@ -40,7 +41,7 @@ export default function FormPageClient({ initialGame }: Props) {
     };
 
     void load();
-  }, [initialGame]);
+  }, [initialGame, router]);
 
   if (loading || !dailyGame) {
     return null;

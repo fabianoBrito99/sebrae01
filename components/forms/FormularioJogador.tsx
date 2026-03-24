@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import type { DailyGameSelection, GameType, PlayerFormData } from "@/types/game";
 import BackHomeButton from "@/components/common/BackHomeButton";
 import InputCampo from "@/components/forms/InputCampo";
@@ -9,7 +10,6 @@ import LogoHeader from "@/components/common/LogoHeader";
 import BackgroundMarca from "@/components/layout/BackgroundMarca";
 import { hasCpfPlayedGame } from "@/services/client/api";
 import { maskCpf, maskPhone } from "@/utils/masks";
-import { navigateToPath } from "@/utils/navigation";
 import { isFormValid, isValidCpf, validateForm } from "@/utils/validators";
 import { savePlayerSession } from "@/utils/session";
 import styles from "./FormularioJogador.module.css";
@@ -29,6 +29,7 @@ type Props = {
 };
 
 export default function FormularioJogador({ dailyGame }: Props) {
+  const router = useRouter();
   const [form, setForm] = useState<PlayerFormData>({
     fullName: "",
     cpf: "",
@@ -41,6 +42,10 @@ export default function FormularioJogador({ dailyGame }: Props) {
 
   const errors = useMemo(() => validateForm(form), [form]);
   const valid = isFormValid(form) && !cpfDuplicateError && !checkingCpf;
+
+  useEffect(() => {
+    void router.prefetch(routeByGame[dailyGame.game]);
+  }, [dailyGame.game, router]);
 
   useEffect(() => {
     let active = true;
@@ -84,7 +89,7 @@ export default function FormularioJogador({ dailyGame }: Props) {
     }
 
     savePlayerSession({ player: form, game: dailyGame.game });
-    navigateToPath(routeByGame[dailyGame.game]);
+    router.push(routeByGame[dailyGame.game]);
   };
 
   return (

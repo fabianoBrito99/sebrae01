@@ -141,6 +141,70 @@
   line-height: 1;
 }
 
+.offlineNotice {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 3;
+  width: min(100%, 380px);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(16px);
+  background: rgba(7, 13, 28, 0.82);
+}
+
+.offline-warming {
+  border-color: rgba(255, 214, 10, 0.38);
+  background: linear-gradient(180deg, rgba(61, 46, 0, 0.92), rgba(14, 18, 30, 0.9));
+}
+
+.offline-ready {
+  border-color: rgba(87, 255, 115, 0.34);
+  background: linear-gradient(180deg, rgba(8, 50, 27, 0.92), rgba(10, 17, 30, 0.9));
+}
+
+.offline-error {
+  border-color: rgba(240, 68, 68, 0.34);
+  background: linear-gradient(180deg, rgba(65, 18, 18, 0.92), rgba(10, 17, 30, 0.9));
+}
+
+.offlineCopy {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.offlineCopy strong {
+  font-size: 0.96rem;
+  font-weight: 800;
+}
+
+.offlineCopy span {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: rgba(233, 242, 255, 0.84);
+}
+
+.offlineClose {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 1.25rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
 @media (max-width: 640px) {
   .page {
     padding: 10px;
@@ -159,6 +223,14 @@
   .backButton {
     top: 12px;
     left: 12px;
+  }
+
+  .offlineNotice {
+    top: 12px;
+    right: 12px;
+    left: 76px;
+    width: auto;
+    padding: 12px 14px;
   }
 }
 
