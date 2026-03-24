@@ -1,8 +1,5 @@
 {
-  "dailyGame": {
-    "date": "2026-03-24",
-    "game": "memory"
-  },
+  "dailyGame": null,
   "participants": [
     {
       "id": "23107cef-ca43-4230-8717-476e8736ca8f",

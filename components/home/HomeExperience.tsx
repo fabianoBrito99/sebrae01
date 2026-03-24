@@ -74,7 +74,11 @@ export default function HomeExperience() {
           </div>
 
           <div className={styles.ctaRow}>
-            <BotaoPrimario onClick={() => router.push("/form")} disabled={!dailyGame} block>
+            <BotaoPrimario
+              onClick={() => router.push(dailyGame ? `/form?game=${dailyGame}` : "/form")}
+              disabled={!dailyGame}
+              block
+            >
               Iniciar jogo
             </BotaoPrimario>
           </div>

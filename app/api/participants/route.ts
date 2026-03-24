@@ -55,7 +55,8 @@ export async function POST(request: Request) {
   try {
     const saved = await saveParticipant(record);
     return NextResponse.json(saved, { status: 201 });
-  } catch {
-    return NextResponse.json(record, { status: 201 });
+  } catch (error) {
+    console.error("participant-save-failed", error);
+    return NextResponse.json({ error: "Nao foi possivel sincronizar o participante agora." }, { status: 503 });
   }
 }

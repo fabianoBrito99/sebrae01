@@ -33,18 +33,32 @@ const participantsCollection = process.env.FIREBASE_PARTICIPANTS_COLLECTION ?? "
 let accessTokenCache: AccessTokenCache = null;
 
 function getFirebaseConfig(): FirebaseServiceAccount | null {
-  const raw = process.env.FIREBASE_ADMIN_KEY;
+  const raw = process.env.FIREBASE_ADMIN_KEY?.trim();
   if (!raw) {
     return null;
   }
 
+  const parseConfig = (value: string): FirebaseServiceAccount | null => {
+    try {
+      return JSON.parse(value) as FirebaseServiceAccount;
+    } catch {
+      return null;
+    }
+  };
+
+  const parsed = parseConfig(raw) ?? parseConfig(Buffer.from(raw, "base64").toString("utf8"));
+  if (!parsed) {
+    console.error("firebase-config-invalid");
+    return null;
+  }
+
   try {
-    const parsed = JSON.parse(raw) as FirebaseServiceAccount;
     return {
       ...parsed,
-      private_key: parsed.private_key.replace(/\\n/g, "\n")
+      private_key: parsed.private_key.replace(/\\n/g, "\n").replace(/\r\n/g, "\n")
     };
   } catch {
+    console.error("firebase-config-read-failed");
     return null;
   }
 }
