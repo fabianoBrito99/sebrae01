@@ -2,30 +2,56 @@
 
 export type OfflineCacheStatus = "idle" | "warming" | "ready" | "error";
 
+export type OfflineProgress = {
+  status: OfflineCacheStatus;
+  completed: number;
+  total: number;
+};
+
 export const OFFLINE_STATUS_KEY = "campaign-pwa-offline-status";
 export const OFFLINE_DISMISSED_KEY = "campaign-pwa-offline-dismissed";
 export const OFFLINE_STATUS_EVENT = "campaign-pwa-offline-status-change";
 
-export function readOfflineStatus(): OfflineCacheStatus {
+const defaultProgress: OfflineProgress = {
+  status: "idle",
+  completed: 0,
+  total: 0
+};
+
+export function readOfflineProgress(): OfflineProgress {
   if (typeof window === "undefined") {
-    return "idle";
+    return defaultProgress;
   }
 
   const raw = window.localStorage.getItem(OFFLINE_STATUS_KEY);
-  if (raw === "idle" || raw === "warming" || raw === "ready" || raw === "error") {
-    return raw;
+  if (!raw) {
+    return defaultProgress;
   }
 
-  return "idle";
+  try {
+    const parsed = JSON.parse(raw) as Partial<OfflineProgress>;
+    const status = parsed.status;
+    if (status !== "idle" && status !== "warming" && status !== "ready" && status !== "error") {
+      return defaultProgress;
+    }
+
+    return {
+      status,
+      completed: typeof parsed.completed === "number" ? parsed.completed : 0,
+      total: typeof parsed.total === "number" ? parsed.total : 0
+    };
+  } catch {
+    return defaultProgress;
+  }
 }
 
-export function writeOfflineStatus(status: OfflineCacheStatus): void {
+export function writeOfflineProgress(progress: OfflineProgress): void {
   if (typeof window === "undefined") {
     return;
   }
 
-  window.localStorage.setItem(OFFLINE_STATUS_KEY, status);
-  window.dispatchEvent(new CustomEvent(OFFLINE_STATUS_EVENT, { detail: { status } }));
+  window.localStorage.setItem(OFFLINE_STATUS_KEY, JSON.stringify(progress));
+  window.dispatchEvent(new CustomEvent(OFFLINE_STATUS_EVENT, { detail: progress }));
 }
 
 export function isOfflineNoticeDismissed(): boolean {

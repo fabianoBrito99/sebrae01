@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import BackgroundMarca from "@/components/layout/BackgroundMarca";
 import BotaoPrimario from "@/components/common/BotaoPrimario";
@@ -11,8 +11,8 @@ import {
   dismissOfflineNotice,
   isOfflineNoticeDismissed,
   OFFLINE_STATUS_EVENT,
-  readOfflineStatus,
-  type OfflineCacheStatus
+  readOfflineProgress,
+  type OfflineProgress
 } from "@/utils/offlineStatus";
 import { savePreferredGame } from "@/utils/session";
 import styles from "./HomeExperience.module.css";
@@ -28,8 +28,20 @@ export default function HomeExperience() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showSelector, setShowSelector] = useState(false);
-  const [offlineStatus, setOfflineStatus] = useState<OfflineCacheStatus>("idle");
+  const [offlineProgress, setOfflineProgress] = useState<OfflineProgress>({
+    status: "idle",
+    completed: 0,
+    total: 0
+  });
   const [showOfflineNotice, setShowOfflineNotice] = useState(false);
+
+  const progressPercent = useMemo(() => {
+    if (!offlineProgress.total) {
+      return 0;
+    }
+
+    return Math.min(100, Math.round((offlineProgress.completed / offlineProgress.total) * 100));
+  }, [offlineProgress.completed, offlineProgress.total]);
 
   useEffect(() => {
     const load = async () => {
@@ -44,9 +56,12 @@ export default function HomeExperience() {
 
   useEffect(() => {
     const syncNoticeState = () => {
-      const status = readOfflineStatus();
-      setOfflineStatus(status);
-      setShowOfflineNotice(!isOfflineNoticeDismissed() && (status === "warming" || status === "ready" || status === "error"));
+      const progress = readOfflineProgress();
+      setOfflineProgress(progress);
+      setShowOfflineNotice(
+        !isOfflineNoticeDismissed() &&
+          (progress.status === "warming" || progress.status === "ready" || progress.status === "error")
+      );
     };
 
     syncNoticeState();
@@ -102,22 +117,35 @@ export default function HomeExperience() {
       <ModalEscolhaJogoDia open={!loading && showSelector} onSelect={handleSelectGame} loading={saving} />
 
       {showOfflineNotice ? (
-        <aside className={`${styles.offlineNotice} ${styles[`offline-${offlineStatus}`] ?? ""}`} aria-live="polite">
+        <aside className={`${styles.offlineNotice} ${styles[`offline-${offlineProgress.status}`] ?? ""}`} aria-live="polite">
           <div className={styles.offlineCopy}>
             <strong>
-              {offlineStatus === "ready"
+              {offlineProgress.status === "ready"
                 ? "Modo offline pronto"
-                : offlineStatus === "warming"
+                : offlineProgress.status === "warming"
                   ? "Preparando modo offline"
                   : "Modo offline precisa de atenção"}
             </strong>
             <span>
-              {offlineStatus === "ready"
-                ? "O totem já pode funcionar sem internet nas telas principais."
-                : offlineStatus === "warming"
-                  ? "Estamos salvando rotas e imagens para uso sem conexão."
+              {offlineProgress.status === "ready"
+                ? `Pacote offline concluído: ${offlineProgress.total} itens salvos.`
+                : offlineProgress.status === "warming"
+                  ? `Baixando recursos offline: ${offlineProgress.completed}/${offlineProgress.total} itens.`
                   : "Abra o app online por alguns segundos para concluir o cache offline."}
             </span>
+            {offlineProgress.total > 0 ? (
+              <div className={styles.progressWrap}>
+                <div className={styles.progressMeta}>
+                  <small>{progressPercent}%</small>
+                  <small>
+                    {offlineProgress.completed}/{offlineProgress.total}
+                  </small>
+                </div>
+                <div className={styles.progressTrack}>
+                  <div className={styles.progressBar} style={{ width: `${progressPercent}%` }} />
+                </div>
+              </div>
+            ) : null}
           </div>
           <button
             type="button"
