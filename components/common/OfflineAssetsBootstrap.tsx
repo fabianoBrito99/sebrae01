@@ -7,7 +7,6 @@ import { resetOfflineNotice, writeOfflineProgress } from "@/utils/offlineStatus"
 const PAGE_CACHE = "app-pages";
 const IMAGE_CACHE = "images";
 const ASSET_CACHE = "http-cache";
-const MODULE_COUNT = 6;
 
 function isImagePath(path: string): boolean {
   return /\.(png|jpg|jpeg|svg|webp|gif)$/i.test(path);
@@ -44,8 +43,9 @@ export default function OfflineAssetsBootstrap() {
         return;
       }
 
-      const total = offlineRoutes.length + MODULE_COUNT;
+      const total = offlineRoutes.length;
       let completed = 0;
+      let hasRouteFailure = false;
 
       writeOfflineProgress({
         status: "warming",
@@ -53,38 +53,6 @@ export default function OfflineAssetsBootstrap() {
         total
       });
 
-      if ("serviceWorker" in navigator) {
-        await navigator.serviceWorker.ready.catch(() => undefined);
-      }
-
-      const modules = [
-        import("@/components/forms/FormPageClient"),
-        import("@/components/memory/MemoryGameScreen"),
-        import("@/components/wordsearch/WordSearchGameScreen"),
-        import("@/components/result/ResultadoView"),
-        import("@/components/report/RelatorioView"),
-        import("@/components/home/HomeExperience")
-      ];
-
-      const moduleResults = await Promise.all(
-        modules.map(async (modulePromise) => {
-          const result = await modulePromise.then(
-            () => true,
-            () => false
-          );
-
-          completed += 1;
-          writeOfflineProgress({
-            status: "warming",
-            completed,
-            total
-          });
-
-          return result;
-        })
-      );
-
-      let hasRouteFailure = false;
       for (const route of offlineRoutes) {
         const cached = await cacheRoute(route);
         if (!cached) {
@@ -99,7 +67,7 @@ export default function OfflineAssetsBootstrap() {
         });
       }
 
-      if (moduleResults.includes(false) || hasRouteFailure) {
+      if (hasRouteFailure) {
         writeOfflineProgress({
           status: "error",
           completed,
