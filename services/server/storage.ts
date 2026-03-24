@@ -1,5 +1,12 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import {
+  clearFirebaseParticipants,
+  getFirebaseParticipantById,
+  getFirebaseParticipants,
+  isFirebaseSyncEnabled,
+  saveParticipantToFirebase
+} from "@/lib/firebase";
 import type { AppStorage, DailyGameSelection, PlayerRecord } from "@/types/game";
 import { getTodayKey } from "@/utils/date";
 
@@ -171,18 +178,39 @@ export async function clearDailyGame(): Promise<void> {
 }
 
 export async function saveParticipant(record: PlayerRecord): Promise<PlayerRecord> {
+  if (isFirebaseSyncEnabled()) {
+    const saved = await saveParticipantToFirebase(record);
+    if (saved) {
+      return saved;
+    }
+  }
+
   const storage = await readStorage();
-  storage.participants.unshift(record);
+  storage.participants = [record, ...storage.participants.filter((item) => item.id !== record.id)];
   await writeStorage(storage);
   return record;
 }
 
 export async function getParticipants(): Promise<PlayerRecord[]> {
+  if (isFirebaseSyncEnabled()) {
+    const participants = await getFirebaseParticipants();
+    if (participants) {
+      return participants;
+    }
+  }
+
   const storage = await readStorage();
   return storage.participants;
 }
 
 export async function getParticipantById(id: string): Promise<PlayerRecord | null> {
+  if (isFirebaseSyncEnabled()) {
+    const participant = await getFirebaseParticipantById(id);
+    if (participant) {
+      return participant;
+    }
+  }
+
   const participants = await getParticipants();
   return participants.find((item) => item.id === id) ?? null;
 }
@@ -199,5 +227,9 @@ export async function setLastWordSetKey(value: string): Promise<void> {
 }
 
 export async function clearAllData(): Promise<void> {
+  if (isFirebaseSyncEnabled()) {
+    await clearFirebaseParticipants();
+  }
+
   await writeStorage(defaultStorage);
 }

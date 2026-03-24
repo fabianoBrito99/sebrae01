@@ -43,7 +43,8 @@ export function validateForm(data: PlayerFormData): Record<keyof PlayerFormData,
     fullName: isValidFullName(data.fullName) ? "" : "Informe nome e sobrenome.",
     cpf: isValidCpf(data.cpf) ? "" : "CPF invalido.",
     phone: isValidPhone(data.phone) ? "" : "Telefone invalido.",
-    email: isValidEmail(data.email) ? "" : "E-mail invalido."
+    email: isValidEmail(data.email) ? "" : "E-mail invalido.",
+    consentAccepted: data.consentAccepted ? "" : "Voce precisa autorizar o compartilhamento dos dados."
   };
 }
 

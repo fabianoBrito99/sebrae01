@@ -83,6 +83,29 @@
   gap: 18px;
 }
 
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.consent input {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  accent-color: #4ad8ff;
+  flex: 0 0 auto;
+}
+
+.consentError {
+  color: #ff97a5;
+  font-size: 0.95rem;
+  margin-top: -12px;
+}
+
 @media (max-width: 520px) {
   .page {
     padding: 16px;

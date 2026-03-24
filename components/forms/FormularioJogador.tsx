@@ -28,7 +28,8 @@ export default function FormularioJogador({ dailyGame }: Props) {
     fullName: "",
     cpf: "",
     phone: "(69) 9",
-    email: ""
+    email: "",
+    consentAccepted: false
   });
 
   const errors = useMemo(() => validateForm(form), [form]);
@@ -87,6 +88,15 @@ export default function FormularioJogador({ dailyGame }: Props) {
             error={errors.email}
           />
         </div>
+        <label className={styles.consent}>
+          <input
+            type="checkbox"
+            checked={form.consentAccepted}
+            onChange={(event) => setForm((current) => ({ ...current, consentAccepted: event.target.checked }))}
+          />
+          <span>Estou ciente de que meus dados serão compartilhados com o Sebrae.</span>
+        </label>
+        {errors.consentAccepted ? <small className={styles.consentError}>{errors.consentAccepted}</small> : null}
         <BotaoPrimario onClick={handleStart} disabled={!valid} block>
           Iniciar
         </BotaoPrimario>

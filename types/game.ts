@@ -10,6 +10,7 @@ export type PlayerFormData = {
   cpf: string;
   phone: string;
   email: string;
+  consentAccepted: boolean;
 };
 
 export type PlayerRecord = PlayerFormData & {
@@ -18,6 +19,7 @@ export type PlayerRecord = PlayerFormData & {
   score: number;
   wonPrize: boolean;
   playedAt: string;
+  consentAcceptedAt: string;
 };
 
 export type DashboardSummary = {

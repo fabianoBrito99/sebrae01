@@ -6,6 +6,10 @@ import { isValidCpf, isValidEmail, isValidFullName, isValidPhone } from "@/utils
 type ParticipantPayload = PlayerFormData & {
   game: GameType;
   score: number;
+  id?: string;
+  playedAt?: string;
+  wonPrize?: boolean;
+  consentAcceptedAt?: string;
 };
 
 export async function GET() {
@@ -28,21 +32,24 @@ export async function POST(request: Request) {
     !isValidCpf(body.cpf) ||
     !isValidPhone(body.phone) ||
     !isValidEmail(body.email) ||
+    !body.consentAccepted ||
     (body.game !== "memory" && body.game !== "wordsearch")
   ) {
     return NextResponse.json({ error: "Dados invalidos." }, { status: 400 });
   }
 
   const record: PlayerRecord = {
-    id: crypto.randomUUID(),
+    id: body.id ?? crypto.randomUUID(),
     fullName: body.fullName.trim(),
     cpf: body.cpf,
     phone: body.phone,
     email: body.email.trim(),
+    consentAccepted: true,
     game: body.game,
     score: body.score,
-    wonPrize: body.score >= 5,
-    playedAt: new Date().toISOString()
+    wonPrize: body.wonPrize ?? body.score >= 5,
+    playedAt: body.playedAt ?? new Date().toISOString(),
+    consentAcceptedAt: body.consentAcceptedAt ?? new Date().toISOString()
   };
 
   try {

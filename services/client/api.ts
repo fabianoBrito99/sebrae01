@@ -9,6 +9,7 @@ type ReportResponse = { summary: DashboardSummary; participants: PlayerRecord[] 
 type BrowserStorage = {
   dailyGame: DailyGameSelection | null;
   participants: PlayerRecord[];
+  pendingParticipants: PlayerRecord[];
   lastWordSetKey: string | null;
 };
 type SafeApiResponse<T> = {
@@ -23,6 +24,7 @@ const RESET_MARKER_KEY = "campaign-pwa-reset-marker";
 const defaultBrowserStorage: BrowserStorage = {
   dailyGame: null,
   participants: [],
+  pendingParticipants: [],
   lastWordSetKey: null
 };
 
@@ -45,6 +47,7 @@ function readBrowserStorage(): BrowserStorage {
     return {
       dailyGame: parsed.dailyGame ?? null,
       participants: Array.isArray(parsed.participants) ? parsed.participants : [],
+      pendingParticipants: Array.isArray(parsed.pendingParticipants) ? parsed.pendingParticipants : [],
       lastWordSetKey: parsed.lastWordSetKey ?? null
     };
   } catch {
@@ -89,6 +92,22 @@ function saveParticipantToBrowser(record: PlayerRecord): void {
   writeBrowserStorage({ ...storage, participants });
 }
 
+function queueParticipantSync(record: PlayerRecord): void {
+  const storage = readBrowserStorage();
+  const participants = [record, ...storage.participants.filter((item) => item.id !== record.id)];
+  const pendingParticipants = [record, ...storage.pendingParticipants.filter((item) => item.id !== record.id)];
+  clearResetMarker();
+  writeBrowserStorage({ ...storage, participants, pendingParticipants });
+}
+
+function markParticipantAsSynced(record: PlayerRecord): void {
+  const storage = readBrowserStorage();
+  const participants = [record, ...storage.participants.filter((item) => item.id !== record.id)];
+  const pendingParticipants = storage.pendingParticipants.filter((item) => item.id !== record.id);
+  clearResetMarker();
+  writeBrowserStorage({ ...storage, participants, pendingParticipants });
+}
+
 function mergeParticipants(primary: PlayerRecord[], secondary: PlayerRecord[]): PlayerRecord[] {
   const merged = new Map<string, PlayerRecord>();
 
@@ -97,6 +116,37 @@ function mergeParticipants(primary: PlayerRecord[], secondary: PlayerRecord[]): 
   }
 
   return [...merged.values()].sort((a, b) => b.playedAt.localeCompare(a.playedAt));
+}
+
+async function flushPendingParticipants(): Promise<void> {
+  if (!canUseBrowserStorage()) {
+    return;
+  }
+
+  if (typeof navigator !== "undefined" && !navigator.onLine) {
+    return;
+  }
+
+  const storage = readBrowserStorage();
+  if (!storage.pendingParticipants.length) {
+    return;
+  }
+
+  for (const participant of storage.pendingParticipants) {
+    const response = await requestJson<PlayerRecord>("/api/participants", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(participant)
+    });
+
+    if (response.ok && response.data) {
+      markParticipantAsSynced(response.data);
+    }
+  }
+}
+
+export async function syncPendingParticipants(): Promise<void> {
+  await flushPendingParticipants();
 }
 
 function saveLastWordSetKeyToBrowser(lastWordSetKey: string): void {
@@ -145,6 +195,8 @@ async function requestJson<T>(input: RequestInfo | URL, init?: RequestInit): Pro
 }
 
 export async function fetchDailyGame(): Promise<DailyGameSelection | null> {
+  void flushPendingParticipants();
+
   const browserStorageDailyGame = normalizeDailyGameForToday(readBrowserStorage().dailyGame);
   if (hasResetMarker() && !browserStorageDailyGame) {
     return null;
@@ -163,6 +215,8 @@ export async function fetchDailyGame(): Promise<DailyGameSelection | null> {
 }
 
 export async function updateDailyGame(game: GameType): Promise<DailyGameSelection> {
+  void flushPendingParticipants();
+
   const response = await requestJson<DailyGameResponse>("/api/settings", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -185,30 +239,25 @@ export async function resetDailyGame(): Promise<void> {
 export async function saveParticipantRecord(
   payload: PlayerFormData & { game: GameType; score: number }
 ): Promise<PlayerRecord> {
-  const response = await requestJson<PlayerRecord>("/api/participants", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-
-  if (response.ok && response.data) {
-    saveParticipantToBrowser(response.data);
-    return response.data;
-  }
-
-  const fallbackRecord: PlayerRecord = {
+  const localRecord: PlayerRecord = {
     id: crypto.randomUUID(),
     fullName: payload.fullName.trim(),
     cpf: payload.cpf,
     phone: payload.phone,
     email: payload.email.trim(),
+    consentAccepted: payload.consentAccepted,
     game: payload.game,
     score: payload.score,
     wonPrize: payload.score >= 5,
-    playedAt: new Date().toISOString()
+    playedAt: new Date().toISOString(),
+    consentAcceptedAt: new Date().toISOString()
   };
-  saveParticipantToBrowser(fallbackRecord);
-  return fallbackRecord;
+
+  queueParticipantSync(localRecord);
+  await flushPendingParticipants();
+
+  const refreshedStorage = readBrowserStorage();
+  return refreshedStorage.participants.find((item) => item.id === localRecord.id) ?? localRecord;
 }
 
 export async function fetchParticipant(id: string): Promise<PlayerRecord | null> {
@@ -233,6 +282,8 @@ export async function fetchParticipant(id: string): Promise<PlayerRecord | null>
 }
 
 export async function fetchReport(): Promise<ReportResponse> {
+  void flushPendingParticipants();
+
   const storage = readBrowserStorage();
   const localParticipants = storage.participants;
 
