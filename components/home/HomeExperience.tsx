@@ -6,6 +6,7 @@ import BackgroundMarca from "@/components/layout/BackgroundMarca";
 import BotaoPrimario from "@/components/common/BotaoPrimario";
 import ModalEscolhaJogoDia from "@/components/home/ModalEscolhaJogoDia";
 import { fetchDailyGame, resetDailyGame, updateDailyGame } from "@/services/client/api";
+import { useOfflineAssetSrc } from "@/lib/hooks/useOfflineAssetSrc";
 import type { GameType } from "@/types/game";
 import {
   dismissOfflineNotice,
@@ -24,6 +25,7 @@ const labels: Record<GameType, string> = {
 
 export default function HomeExperience() {
   const router = useRouter();
+  const eventLogoSrc = useOfflineAssetSrc("/logo.png");
   const [dailyGame, setDailyGame] = useState<GameType | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -177,7 +179,7 @@ export default function HomeExperience() {
         <div className={styles.badge}>{dailyGame ? labels[dailyGame] : "Defina o jogo do dia"}</div>
         <div className={styles.content}>
           <div className={styles.img}>
-            <img src="/logo.png" alt="Logo do evento" className={styles.eventLogo} />
+            <img src={eventLogoSrc} alt="Logo do evento" className={styles.eventLogo} />
           </div>
 
           <div className={styles.ctaRow}>

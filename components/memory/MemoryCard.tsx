@@ -1,3 +1,4 @@
+import { useOfflineAssetSrc } from "@/lib/hooks/useOfflineAssetSrc";
 import styles from "./MemoryCard.module.css";
 
 type Props = {
@@ -8,6 +9,8 @@ type Props = {
 };
 
 export default function MemoryCard({ image, flipped, matched, onClick }: Props) {
+  const resolvedImage = useOfflineAssetSrc(image);
+
   return (
     <button
       className={`${styles.card} ${flipped || matched ? styles.flipped : ""}`}
@@ -18,7 +21,7 @@ export default function MemoryCard({ image, flipped, matched, onClick }: Props) 
       <span className={styles.inner}>
         <span className={styles.front}>?</span>
         <span className={styles.back}>
-          <img src={image} alt={"Carta do jogo da mem\u00F3ria"} />
+          <img src={resolvedImage} alt={"Carta do jogo da mem\u00F3ria"} />
         </span>
       </span>
     </button>

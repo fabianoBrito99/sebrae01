@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import OfflineAssetsBootstrap from "@/components/common/OfflineAssetsBootstrap";
 import PendingSyncBootstrap from "@/components/common/PendingSyncBootstrap";
+import PwaVersionBootstrap from "@/components/common/PwaVersionBootstrap";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
@@ -12,6 +13,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <body>
+        <PwaVersionBootstrap />
         <OfflineAssetsBootstrap />
         <PendingSyncBootstrap />
         {children}

@@ -1,3 +1,4 @@
+import { useOfflineAssetSrc } from "@/lib/hooks/useOfflineAssetSrc";
 import styles from "./LogoHeader.module.css";
 
 type Props = {
@@ -5,12 +6,12 @@ type Props = {
 };
 
 export default function LogoHeader({ compact = false }: Props) {
+  const logoSrc = useOfflineAssetSrc("/logo.png");
+
   return (
     <div className={`${styles.wrap} ${compact ? styles.compact : ""}`}>
-      
-      <img src="/logo.png" alt="Sebrae Rolim de Moura" className={styles.mark} />
-      <div className={styles.copy}>
-      </div>
+      <img src={logoSrc} alt="Sebrae Rolim de Moura" className={styles.mark} />
+      <div className={styles.copy}></div>
     </div>
   );
 }
