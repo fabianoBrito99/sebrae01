@@ -13,7 +13,7 @@ import styles from "./WordSearchGameScreen.module.css";
 export default function WordSearchGameScreen() {
   const router = useRouter();
   const [score, setScore] = useState(0);
-  const [secondsLeft, setSecondsLeft] = useState(60);
+  const [secondsLeft, setSecondsLeft] = useState(120);
   const [locked, setLocked] = useState(false);
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [puzzle, setPuzzle] = useState<WordSearchPuzzle | null>(null);
